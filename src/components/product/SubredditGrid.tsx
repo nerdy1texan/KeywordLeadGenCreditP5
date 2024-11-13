@@ -7,6 +7,12 @@ interface SubredditGridProps {
   isLoading?: boolean;
 }
 
+const getRelevanceBadgeVariant = (score: number) => {
+  if (score >= 90) return "success-gradient";
+  if (score >= 80) return "primary-gradient";
+  return "secondary-gradient";
+};
+
 export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
   if (isLoading) {
     return (
@@ -59,11 +65,14 @@ export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
                 {subreddit.description || 'No description available'}
               </p>
               <div className="mt-2 flex gap-2">
-                <Badge variant={subreddit.relevanceScore >= 80 ? "success" : "outline"} className="mt-2">
+                <Badge 
+                  variant={getRelevanceBadgeVariant(subreddit.relevanceScore)} 
+                  className="mt-2"
+                >
                   Relevance: {Math.round(subreddit.relevanceScore)}%
                 </Badge>
                 {subreddit.isMonitored && (
-                  <Badge variant="success" className="mt-2">
+                  <Badge variant="success-gradient" className="mt-2">
                     Monitored
                   </Badge>
                 )}

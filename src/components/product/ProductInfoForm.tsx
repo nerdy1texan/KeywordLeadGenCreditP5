@@ -432,8 +432,16 @@ export default function ProductInfoForm() {
             <Button 
               onClick={handleFindSubreddits}
               disabled={isLoadingSubreddits}
+              className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 text-white"
             >
-              {isLoadingSubreddits ? "Finding Subreddits..." : "Find Relevant Subreddits"}
+              {isLoadingSubreddits ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Finding Subreddits...
+                </>
+              ) : (
+                "Find Relevant Subreddits"
+              )}
             </Button>
 
             <Button 

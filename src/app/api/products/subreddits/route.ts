@@ -121,22 +121,21 @@ async function extractKeywords(description: string): Promise<string[]> {
 }
 
 // Helper function to calculate relevance score
-function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
-  let score = 50; // Start with base score
-  const text = `${subreddit.title} ${subreddit.description}`.toLowerCase();
+function calculateRelevanceScore(item: any, keywords: string[]): number {
+  // Start with a higher base score (e.g., 70 instead of 60)
+  let score = 70;
 
-  // Score based on keyword matches (up to 30 points)
+  // Add points for each matching keyword in title or description
   keywords.forEach(keyword => {
-    if (text.includes(keyword.toLowerCase())) {
-      score += 10;
-    }
+    const keywordLower = keyword.toLowerCase();
+    if (item.title?.toLowerCase().includes(keywordLower)) score += 5;
+    if (item.description?.toLowerCase().includes(keywordLower)) score += 5;
   });
 
-  // Score based on member count (up to 20 points)
-  const members = subreddit.numberOfMembers || 0;
-  if (members > 100000) score += 20;
-  else if (members > 10000) score += 15;
-  else if (members > 1000) score += 10;
+  // Bonus points for member count
+  if (item.numberOfMembers > 1000000) score += 10;
+  else if (item.numberOfMembers > 100000) score += 5;
 
-  return Math.min(100, score); // Return the score directly without dividing
+  // Cap the score at 100
+  return Math.min(100, score);
 } 
