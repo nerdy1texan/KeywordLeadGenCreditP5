@@ -1,0 +1,66 @@
+{
+  "commit": "1c7938e7508ec029b2858606b41e7f515571f0cb",
+  "generated": "2024-03-16T02:51:52.492Z",
+  "metadata": [
+    {
+      "__outstatic": {
+        "commit": "0967ef424bce6791893e9a57bb952f80fd536e93",
+        "hash": "3732851808",
+        "path": "/outstatic/content/pages/privacy-policy.md"
+      },
+      "author": {
+        "name": "Maulin",
+        "picture": "https://avatars.githubusercontent.com/u/109623919?v=4"
+      },
+      "collection": "pages",
+      "coverImage": "",
+      "description": "Privacy Policy of LeadNimbus",
+      "publishedAt": "2024-03-10T02:43:50.682Z",
+      "slug": "privacy-policy",
+      "status": "published",
+      "title": "Privacy Policy"
+    },
+    {
+      "__outstatic": {
+        "commit": "88c918131601f658856c3a0a55fa4cf2df1c0b04",
+        "hash": "3306588572",
+        "path": "/outstatic/content/pages/terms-and-conditions.md"
+      },
+      "author": {
+        "name": "Maulin",
+        "picture": "https://avatars.githubusercontent.com/u/109623919?v=4"
+      },
+      "collection": "pages",
+      "coverImage": "",
+      "description": "Terms and Conditions for LeadNimbus",
+      "publishedAt": "2024-03-10T02:53:21.547Z",
+      "slug": "terms-and-conditions",
+      "status": "published",
+      "title": "Terms and Conditions"
+    },
+    {
+      "__outstatic": {
+        "commit": "1c7938e7508ec029b2858606b41e7f515571f0cb",
+        "hash": "3867228085",
+        "path": "outstatic/content/posts/introducing-leadnimbus.md"
+      },
+      "author": {
+        "name": "Maulin",
+        "picture": "https://avatars.githubusercontent.com/u/109623919?v=4"
+      },
+      "collection": "posts",
+      "coverImage": "",
+      "description": "",
+      "publishedAt": "2024-09-09T05:42:33.115Z",
+      "slug": "introducing-leadnimbus-cms",
+      "status": "published",
+      "tags": [
+        {
+          "label": "Release",
+          "value": "release"
+        }
+      ],
+      "title": "Introducing LeadNimbus Lead Generation and Social Media Scraping Platform"
+    }
+  ]
+}

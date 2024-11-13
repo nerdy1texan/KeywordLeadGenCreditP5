@@ -1,0 +1,29 @@
+import { Callout } from "nextra/components";
+
+# Using Facebook Web Scraper
+
+<Callout type="info" emoji="💡">
+  LeadNimbus allows you to easily scrape public Facebook pages, profiles, and groups for valuable lead data and insights.
+</Callout>
+
+## How to Use the Facebook Web Scraper
+
+1. **Log in to LeadNimbus**: Ensure you are logged in to your LeadNimbus account.
+2. **Navigate to Facebook Scraper**: From your dashboard, go to the **Facebook Web Scraper** section.
+3. **Enter the Facebook URL**: Paste the URL of the public Facebook page, group, or profile that you want to scrape.
+4. **Start the Scraper**: Click on the "Scrape" button, and LeadNimbus will begin fetching data such as posts, comments, public email addresses, and more.
+
+## Data Collected
+
+The Facebook Web Scraper will collect the following public data:
+- **Profile Information**: Name, profile image, and public details
+- **Posts and Comments**: Scrape public posts and related comments
+- **Public Emails**: Extract email addresses available in public profiles or posts
+- **Engagement Metrics**: Number of likes, shares, and comments on posts
+
+## Exporting Data
+
+Once the scraping is completed, you can export the data in **CSV format**. Simply click the **Download CSV** button, and the data will be available for use in your CRM or marketing tool.
+
+```jsx filename="src/.env"
+NEXT_PUBLIC_FACEBOOK_API = "{facebook_api_key}";

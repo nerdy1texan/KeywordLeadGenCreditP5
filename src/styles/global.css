@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .h1 {
+    @apply text-4xl font-extrabold leading-tight;
+  }
+
+  .h2 {
+    @apply text-3xl font-bold leading-tight;
+  }
+
+  .h3 {
+    @apply text-3xl font-bold;
+  }
+
+  .h4 {
+    @apply text-2xl font-bold leading-tight tracking-tight;
+  }
+
+  .h5 {
+    @apply text-xl font-bold leading-tight tracking-tight;
+  }
+
+  .h6 {
+    @apply text-lg font-bold leading-tight tracking-tight;
+  }
+
+  @screen md {
+    .h1 {
+      @apply text-5xl;
+    }
+
+    .h2 {
+      @apply text-4xl;
+    }
+  }
+}
+
+:root {
+  font-size: 15px; /* 16x is default */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+.gradient {
+  background: linear-gradient(
+    to right,
+    rgb(199, 210, 254),
+    rgb(254, 202, 202),
+    rgb(254, 249, 195)
+  );
+}
+
+input {
+  @apply focus:outline-none;
+}
+
+.input {
+  @apply focus:outline-none;
+}
+
+.textarea {
+  @apply focus:outline-none;
+}
+
+.btn {
+  @apply focus:outline-none;
+}
+
+.highlight-underline {
+  @apply underline decoration-sky-500 decoration-4;
+}
+
+.highlight {
+  @apply rounded-md bg-yellow-200 p-1 text-gray-800;
+}
+
+.skeleton {
+  @apply my-1 animate-pulse rounded-md bg-gray-300 leading-relaxed;
+}
+
+.border-color {
+  @apply border-slate-900/10  dark:border-slate-50/[0.06];
+}
+
+.moving-border {
+  border: 3px solid #0000;
+  border-radius: 12px;
+  background: linear-gradient(#131219, #131219) padding-box,
+    linear-gradient(var(--angle), #070707, #4f46e5) border-box;
+  animation: 8s rotate linear infinite;
+}
+
+.shining {
+  @apply relative inline-flex shadow before:absolute 
+  before:inset-0 before:rounded-[inherit] 
+  before:bg-[linear-gradient(45deg,transparent_25%,theme(colors.white/.5)_50%,transparent_75%,transparent_100%)]
+  before:bg-[length:250%_250%,100%_100%] before:bg-[position:200%_0,0_0] 
+  before:bg-no-repeat before:[transition:background-position_0s_ease] hover:before:bg-[position:-100%_0,0_0] 
+  hover:before:duration-[2000ms] focus:outline-none focus:ring focus:ring-slate-500/50 focus-visible:outline-none focus-visible:ring focus-visible:ring-slate-500/50;
+}
+
+.bg-gradient {
+  background-image: linear-gradient(108deg, #4f46e5, #ff002f 70%, #ff8c00);
+}
+
+@keyframes rotate {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+[data-theme="dark"] [data-hide-on-theme="dark"],
+[data-theme="light"] [data-hide-on-theme="light"] {
+  display: none;
+}

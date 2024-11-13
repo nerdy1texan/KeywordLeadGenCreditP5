@@ -1,0 +1,248 @@
+{
+  "Common": {
+    "Features": "Features",
+    "Pricing": "Pricing",
+    "Faqs": "FAQs",
+    "Docs": "Docs",
+    "Sign in": "Sign in",
+    "sign in": "sign in",
+    "Sign out": "Sign out",
+    "Sign up": "Sign up",
+    "Dashboard": "Dashboard",
+    "Terms": "Terms",
+    "Privacy Policy": "Privacy Policy",
+    "or": "or",
+    "create an account": "create an account",
+    "or continue with the magic link": "continue with a magic link",
+    "or sign in with email and password": "or sign in with email and password",
+    "Forgot your password?": "Forgot your password?",
+    "We will email you a link to reset your password": "We will email you a link to reset your password",
+    "Remember your password?": "Remember your password?",
+    "Reset password": "Reset password",
+    "New password": "New password",
+    "Save password": "Save password",
+    "Confirm password": "Confirm password",
+    "Email address": "Email address",
+    "Password": "Password",
+    "Continue with Google": "Continue with Google",
+    "Your name": "Your name",
+    "I agree with the": "I agree to the",
+    "Terms and Conditions": "Terms & Conditions",
+    "Get the Link": "Get the Link",
+    "Copyright": "Copyright",
+    "Loading": "Loading",
+    "Resources": "Resources",
+    "Pages": "Pages",
+    "Subscribe to newsletter": "Subscribe to newsletter",
+    "Subscribe": "Subscribe",
+    "Redeem Code": "Redeem Code",
+    "Code": "Code",
+    "Redeem Now": "Redeem Now",
+    "Join The Waitlist": "Join The Waitlist",
+    "Blog": "Blog",
+    "About Us": "About Us"
+  },
+  "Hero": {
+    "title": "Welcome to LeadNimbus",
+    "titleHighlight": " Your AI-Driven Lead Generation Platform",
+    "cta": "Join <span class='font-bold'>100+ Businesses</span> boosting their lead generation",
+    "promo": "🎁 Use LAUNCHPROMO to get $10 OFF <span class='highlight-underline font-bold'>90 left</span>",
+    "subtitle": "LeadNimbus is an AI-powered tool to automate lead generation and data scraping from social media and public platforms.",
+    "leftButton": "Start Scraping Today",
+    "rightButton": "Learn More About LeadNimbus"
+  },
+  "FeatureZigzag": {
+    "title": "<h2 class='h2 mb-4'>Generate Leads in <span class='h3 text-gray-400' style='text-decoration-line: line-through;'>days</span> <span class='highlight'>minutes</span></h2>",
+    "description": "<p class='text-xl text-gray-500'>Boost your lead generation with our AI scrapers. <span class='highlight-underline'>Save <b>100+</b> hours</span> by automating the collection of leads, emails, and public data from social platforms, all in one easy-to-use tool.</p>",
+    "features": [
+      {
+        "title": "AI-Powered Scraping",
+        "description": "Instantly gather actionable data with AI-driven scrapers.",
+        "highlights": [
+          "Facebook public information scraping",
+          "Email scraping from Twitter (X) and other platforms",
+          "Hashtag and keyword generation for trending topics",
+          "Lead tracking and monitoring tools",
+          "Custom lead reports in downloadable CSV format"
+        ]
+      },
+      {
+        "title": "Automated Lead Generation",
+        "description": "Generate leads faster and more efficiently with automation.",
+        "highlights": [
+          "Automatically scrape social media pages",
+          "Real-time data collection and updates",
+          "Keyword and hashtag analysis",
+          "Comprehensive lead generation reports"
+        ]
+      },
+      {
+        "title": "Seamless Integration & Export",
+        "description": "Download your leads easily and integrate them into your CRM.",
+        "highlights": [
+          "Export leads in CSV format",
+          "Integrate seamlessly with existing CRM and marketing tools",
+          "Detailed analytics and insights for each scrape",
+          "Optimized for marketing and sales teams"
+        ]
+      }
+    ]
+  },
+  "FeatureGrid": {
+    "title": "LeadNimbus Features",
+    "description": "LeadNimbus is packed with advanced tools designed to help you generate leads, scrape data, and track performance across multiple platforms. Here’s a look at some of the powerful features at your disposal.",
+    "features": [
+      {
+        "title": "Facebook Scraper",
+        "highlight": "Scrape public data from Facebook pages, profiles, and groups in seconds."
+      },
+      {
+        "title": "Twitter (X) Email Scraper",
+        "highlight": "Extract email addresses and leads from Twitter (X) with advanced AI tools."
+      },
+      {
+        "title": "Hashtag & Keyword Generator",
+        "highlight": "Generate relevant hashtags and keywords to optimize your campaigns and content."
+      },
+      {
+        "title": "Email Scraper",
+        "highlight": "Extract and verify emails from social media platforms for targeted outreach."
+      },
+      {
+        "title": "Reddit Scraper",
+        "highlight": "Scrape data from Reddit threads and communities to discover leads and content trends."
+      },
+      {
+        "title": "Instagram Scraper",
+        "highlight": "Collect public data from Instagram profiles and posts for lead generation and market analysis."
+      },
+      {
+        "title": "Lead Tracker",
+        "highlight": "Monitor leads, track engagement, and follow up with ease using our built-in tools."
+      },
+      {
+        "title": "Real-Time Updates",
+        "highlight": "Get real-time data from social media scraping for up-to-the-minute insights."
+      },
+      {
+        "title": "CSV Export",
+        "highlight": "Download scraped data and leads in CSV format for easy integration into CRM systems."
+      },
+      {
+        "title": "Custom Lead Reports",
+        "highlight": "Generate tailored reports that provide deep insights into your lead generation campaigns."
+      },
+      {
+        "title": "AI Reply Generator",
+        "highlight": "Automatically generate smart, AI-driven replies to engage your leads and save time."
+      },
+      {
+        "title": "Social Media Tracker",
+        "highlight": "Track and analyze your performance across social platforms, including engagement metrics and lead conversions."
+      }
+    ]
+  },
+  "Steps": {
+    "title": "How LeadNimbus Works",
+    "description": "Lead generation has never been easier. Here’s how to start generating leads in three simple steps.",
+    "steps": [
+      {
+        "title": "Choose a Public Page",
+        "description": "Select a public social media page or profile you want to scrape data from."
+      },
+      {
+        "title": "Run the AI Scraper",
+        "description": "Our AI scrapes public information, emails, and lead data quickly and efficiently."
+      },
+      {
+        "title": "Download Your Leads",
+        "description": "Get your results in a downloadable CSV format, ready for use in your marketing and sales efforts."
+      }
+    ]
+  },
+  "Testimonials": {
+    "title": "100+ Businesses Trust LeadNimbus",
+    "description": "Here’s what our users have to say about LeadNimbus."
+  },
+  "Pricing": {
+    "title": "Start Scraping Leads Today and Maximize Your ROI",
+    "description": "🎁 Use LAUNCHPROMO to get $10 OFF <span class='highlight-underline font-bold'>90 left</span>"
+  },
+  "PlanCard": {
+    "yourCurrentPlan": "Your Current Plan",
+    "choosePlan": "Choose Your Plan",
+    "mostPopular": "Best Value"
+  },
+  "Faqs": {
+    "title": "Frequently Asked Questions",
+    "description": "Got more questions? Connect with us on <a class='text-primary font-bold' href='https://facebook.com/leadnimbus'>Facebook</a>",
+    "faqs": [
+      {
+        "q": "What is LeadNimbus?",
+        "a": "LeadNimbus is an AI-powered platform designed to help businesses scrape social media for leads, gather public data, and extract emails, all in a seamless and efficient way."
+      },
+      {
+        "q": "How does LeadNimbus work?",
+        "a": "LeadNimbus uses advanced AI scrapers to collect public data, emails, and leads from platforms like Facebook and Twitter (X). Simply choose the page or profile, run the scraper, and export the data in CSV format."
+      },
+      {
+        "q": "What do I get with LeadNimbus?",
+        "a": "You get access to AI-driven scrapers for Facebook, Twitter (X), and other platforms. LeadNimbus also includes email extraction tools, keyword and hashtag generators, and the ability to download your data in CSV format for easy integration."
+      },
+      {
+        "q": "Can I customize LeadNimbus for my business?",
+        "a": "Yes, LeadNimbus allows you to customize the lead generation and scraping tools to fit your business needs. Create custom reports, generate targeted leads, and export data directly into your CRM."
+      },
+      {
+        "q": "How often is LeadNimbus updated?",
+        "a": "LeadNimbus is constantly updated with new features based on user feedback. We regularly improve our tools to ensure the best experience for your lead generation efforts."
+      }
+    ]
+  },
+  "Waitlist": {
+    "title": "Waitlist",
+    "description": "Join the waitlist and get $100 OFF your first 90 days.",
+    "tag": "LeadNimbus <span class='mx-1 text-primary'>·</span> Coming Soon",
+    "cta": "<span class='font-medium text-gray-700 dark:text-gray-200 underline'>100+</span> people have already signed up."
+  },
+  "AboutUs": {
+    "title": "About LeadNimbus",
+    "subtitle": "Revolutionizing lead generation with AI",
+    "mission": {
+      "title": "Our Mission",
+      "description": "At LeadNimbus, our mission is simple: to empower businesses by automating lead generation and data scraping through cutting-edge AI technology. We believe that businesses, regardless of size, should have access to high-quality leads and insights without the manual work."
+    },
+    "whatWeDo": {
+      "title": "What We Do",
+      "description": "LeadNimbus provides AI-driven solutions for automated lead generation, social media scraping, and keyword and hashtag research. Our platform extracts data from public sources like Facebook, Twitter (X), Instagram, and Reddit, making it easy for businesses to track trends, gather leads, and optimize their marketing strategies."
+    },
+    "team": {
+      "title": "Meet the Team",
+      "members": [
+        {
+          "name": "John Doe",
+          "role": "Founder & CEO",
+          "image": "/team/John.jpg",
+          "description": "With over a decade of experience in AI and automation, John leads LeadNimbus with a vision to transform how businesses approach lead generation."
+        },
+        {
+          "name": "Jane Doe",
+          "role": "Head of Product",
+          "image": "/team/Alice.jpg",
+          "description": "Jane ensures that LeadNimbus remains at the cutting edge, constantly innovating and improving our tools for better lead generation and scraping."
+        },
+        {
+          "name": "John Doe Jr.",
+          "role": "Marketing Director",
+          "image": "/team/John.jpg",
+          "description": "With a deep understanding of SEO and digital marketing, David ensures that LeadNimbus reaches businesses that need our solutions most."
+        }
+      ]
+    },
+    "contact": {
+      "title": "Get in Touch",
+      "description": "Want to learn more about LeadNimbus or have any questions? Feel free to reach out to us at:",
+      "email": "hello@leadnimbus.com"
+    }
+  }
+}

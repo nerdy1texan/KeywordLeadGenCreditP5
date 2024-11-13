@@ -1,0 +1,51 @@
+import { Callout } from "nextra/components";
+import Link from 'next/link';
+
+# LeadNimbus Tutorials
+
+<Callout type="info" emoji="💡">
+  Welcome to LeadNimbus tutorials! Here, you'll find comprehensive guides on using our AI-driven lead generation tools, web scrapers, and keyword & hashtag generators. These tutorials will help you maximize the potential of LeadNimbus for your business.
+</Callout>
+
+## Available Tutorials
+
+We offer a range of tutorials to help you get started and make the most of LeadNimbus:
+
+1. [Getting Started with LeadNimbus](/tutorials/index)
+   - Learn the basics of LeadNimbus and set up your account.
+
+2. [Using Facebook Web Scraper](/tutorials/facebook_scraper)
+   - Discover how to extract valuable leads from Facebook using our web scraper.
+
+3. [Using Twitter (X) Web Scraper](/tutorials/twitter_scraper)
+   - Explore techniques to gather leads from Twitter using our specialized scraper.
+
+4. [AI Keyword & Hashtag Generator](/tutorials/keyword_generator)
+   - Learn how to generate effective keywords and hashtags for your campaigns using AI.
+
+## How to Use These Tutorials
+
+Each tutorial is designed to be self-contained, allowing you to focus on the specific tool or feature you're interested in. However, if you're new to LeadNimbus, we recommend starting with the "Getting Started" tutorial.
+
+<Callout type="warning" emoji="⚠️">
+  Remember to comply with the terms of service of the platforms you're scraping and respect user privacy when using our tools.
+</Callout>
+
+## Need Help?
+
+If you have any questions or need further assistance, don't hesitate to reach out to our support team. We're here to help you succeed with LeadNimbus!
+
+export const tutorials = {
+  "index": "Getting Started with LeadNimbus",
+  "facebook_scraper": "Using Facebook Web Scraper",
+  "twitter_scraper": "Using Twitter (X) Web Scraper",
+  "keyword_generator": "AI Keyword & Hashtag Generator"
+};
+
+export default ({ children }) => (
+  <div className="container mx-auto px-4 py-16">
+    <div className="text-lg text-gray-700">
+      {children}
+    </div>
+  </div>
+);
