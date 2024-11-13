@@ -33,20 +33,27 @@ export const GET = withMiddleware(async (req: NextRequest) => {
 
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
       searches: keywords.map(k => `${k} subreddit`),
-      maxItems: 50,
-      maxCommunitiesCount: 20,
-      type: "community",
-      searchCommunities: true,
-      searchPosts: false,
+      maxItems: 100,
       proxy: {
-        useApifyProxy: true
+        useApifyProxy: true,
+        apifyProxyGroups: ["RESIDENTIAL"]
       }
     });
 
     const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    
+    // Score and filter subreddits
+    const scoredSubreddits = items
+      .map(item => ({
+        ...item,
+        relevanceScore: calculateRelevanceScore(item, keywords)
+      }))
+      .filter(item => item.relevanceScore >= 75)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 20);
 
     // Transform and filter new results
-    const newSubreddits = items
+    const newSubreddits = scoredSubreddits
       .filter(item => 
         item.dataType === "community" &&
         item.numberOfMembers >= 1000 &&
@@ -121,21 +128,43 @@ async function extractKeywords(description: string): Promise<string[]> {
 }
 
 // Helper function to calculate relevance score
-function calculateRelevanceScore(item: any, keywords: string[]): number {
-  // Start with a higher base score (e.g., 70 instead of 60)
-  let score = 70;
-
-  // Add points for each matching keyword in title or description
+function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
+  let score = 70; // Base score
+  let relevanceHits = 0;
+  const totalKeywords = keywords.length;
+  
+  // Check title and description for keyword matches
   keywords.forEach(keyword => {
     const keywordLower = keyword.toLowerCase();
-    if (item.title?.toLowerCase().includes(keywordLower)) score += 5;
-    if (item.description?.toLowerCase().includes(keywordLower)) score += 5;
+    const titleLower = subreddit.title?.toLowerCase() || '';
+    const descLower = subreddit.description?.toLowerCase() || '';
+    
+    // Direct matches in title are very important
+    if (titleLower.includes(keywordLower)) {
+      score += 15;
+      relevanceHits++;
+    }
+    
+    // Matches in description are good too
+    if (descLower.includes(keywordLower)) {
+      score += 10;
+      relevanceHits++;
+    }
   });
 
-  // Bonus points for member count
-  if (item.numberOfMembers > 1000000) score += 10;
-  else if (item.numberOfMembers > 100000) score += 5;
-
-  // Cap the score at 100
-  return Math.min(100, score);
+  // Calculate keyword match percentage
+  const matchPercentage = (relevanceHits / totalKeywords) * 100;
+  
+  // Bonus for high member count (we want active communities)
+  if (subreddit.numberOfMembers > 1000000) score += 10;
+  else if (subreddit.numberOfMembers > 100000) score += 5;
+  
+  // Penalty for very small communities
+  if (subreddit.numberOfMembers < 10000) score -= 20;
+  
+  // If less than 30% of keywords match, significantly reduce score
+  if (matchPercentage < 30) score -= 30;
+  
+  // Cap the score
+  return Math.min(100, Math.max(0, score));
 } 

@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { notify } from "@/components/Toaster";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Trash, Loader2 } from "lucide-react";
+import { X, Plus, Trash as TrashIcon, Loader2, PencilIcon } from "lucide-react";
 import { SubredditGrid } from './SubredditGrid';
 import { type SubredditSuggestion } from "@/types/product";
 
@@ -30,6 +30,7 @@ export default function ProductInfoForm() {
   const [subreddits, setSubreddits] = useState<SubredditSuggestion[]>([]);
   const [productId, setProductId] = useState<string>("");
   const [isLoadingSubreddits, setIsLoadingSubreddits] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -81,21 +82,30 @@ export default function ProductInfoForm() {
         `/api/products/extract?url=${encodeURIComponent(formik.values.url)}`
       );
       
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to extract product information');
+      }
+      
       const data = await response.json();
       
-      if (!response.ok) throw new Error(data.error);
+      // Check if data exists and has the expected properties
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid response from server');
+      }
       
       formik.setValues({
         ...formik.values,
         name: data.name || formik.values.name,
         description: data.description || formik.values.description,
-        keywords: data.keywords || formik.values.keywords,
-        plans: data.plans || formik.values.plans,
+        keywords: Array.isArray(data.keywords) ? data.keywords : formik.values.keywords,
+        plans: Array.isArray(data.plans) ? data.plans : formik.values.plans,
       });
       
       notify({ message: "Product information extracted successfully!", type: "success" });
     } catch (error: any) {
-      notify({ message: error.message, type: "error" });
+      console.error('Auto-fill error:', error);
+      notify({ message: error.message || "Failed to extract product information", type: "error" });
     } finally {
       setAutoFilling(false);
     }
@@ -263,6 +273,20 @@ export default function ProductInfoForm() {
     return newPlan.name.trim() !== "" && newFeature.trim() !== "";
   };
 
+  const handleDeletePlan = (planIndex: number) => {
+    formik.setFieldValue(
+      'plans', 
+      formik.values.plans?.filter((_, index) => index !== planIndex)
+    );
+  };
+
+  const handleEditPlan = (plan: Plan, index: number) => {
+    setEditingPlan(plan);
+    setNewPlan(plan);
+    // Remove the plan from the list while editing
+    handleDeletePlan(index);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -292,12 +316,18 @@ export default function ProductInfoForm() {
                 className="flex-grow"
               />
               <Button
-                variant="secondary"
                 onClick={handleAutoFill}
                 disabled={autoFilling}
-                className="min-w-[100px]"
+                className="min-w-[120px] bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white"
               >
-                {autoFilling ? "Loading..." : "Auto-Fill"}
+                {autoFilling ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Autofilling...
+                  </>
+                ) : (
+                  "Auto-Fill"
+                )}
               </Button>
             </div>
           </div>
@@ -414,11 +444,29 @@ export default function ProductInfoForm() {
                   <div key={index} className="border border-gray-700 rounded-lg p-4">
                     <div className="flex justify-between items-center">
                       <h5 className="font-medium">{plan.name}</h5>
-                      <span>${plan.price}</span>
+                      <div className="flex gap-2">
+                        <span>${plan.price}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditPlan(plan, index)}
+                        >
+                          <PencilIcon className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeletePlan(index)}
+                        >
+                          <TrashIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {plan.features.map((feature, fIndex) => (
-                        <Badge key={fIndex} variant="outline">{feature}</Badge>
+                      {plan.features?.map((feature, fIndex) => (
+                        <Badge key={fIndex} variant="outline">
+                          {feature}
+                        </Badge>
                       ))}
                     </div>
                   </div>
@@ -446,8 +494,8 @@ export default function ProductInfoForm() {
 
             <Button 
               type="submit"
-              disabled={loading || !formik.isValid}
-              className="min-w-[150px]"
+              disabled={loading}
+              className="min-w-[150px] bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 text-white"
             >
               {loading ? "Saving..." : "Save Product Info"}
             </Button>

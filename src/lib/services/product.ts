@@ -100,15 +100,26 @@ export async function extractProductInfo(url: string): Promise<ProductFormData> 
       messages: [
         {
           role: "system",
-          content: `Extract product information from the website content. Return in format:
+          content: `Extract product information from the website content, including pricing plans if available.
+          
+          Guidelines:
+          - Extract clear product name and description
+          - Identify 5-7 most relevant keywords for finding potential customers
+          - Look for pricing plans and their features
+          - If pricing plans exist, extract:
+            * Plan name
+            * Price
+            * List of features
+          
+          Return in format:
           {
             "name": "product name",
             "description": "clear, concise description (max 500 chars)",
-            "keywords": ["keyword1", "keyword2", ...], // Extract 5-10 relevant keywords
+            "keywords": ["keyword1", "keyword2", ...],
             "plans": [
               {
-                "name": "plan name",
-                "price": number,
+                "name": "Basic/Pro/etc",
+                "price": 29,
                 "features": ["feature1", "feature2", ...]
               }
             ]
@@ -118,17 +129,25 @@ export async function extractProductInfo(url: string): Promise<ProductFormData> 
           role: "user",
           content: truncatedHtml
         }
-      ]
+      ],
+      temperature: 0.3,
     });
 
     const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
     
+    // Ensure plans are properly formatted
+    const formattedPlans = result.plans?.map(plan => ({
+      name: plan.name || '',
+      price: typeof plan.price === 'number' ? plan.price : 0,
+      features: Array.isArray(plan.features) ? plan.features : []
+    })) || [];
+
     return {
       name: result.name || '',
       url,
       description: result.description || '',
       keywords: result.keywords || [],
-      plans: result.plans || [],
+      plans: formattedPlans,
     };
   } catch (error: any) {
     console.error("Error in extractProductInfo:", error);
