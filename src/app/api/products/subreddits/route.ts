@@ -31,58 +31,53 @@ export const GET = withMiddleware(async (req: NextRequest) => {
     const keywords = await extractKeywords(description);
     console.log('Searching with keywords:', keywords);
 
+    // Updated Apify configuration to specifically search for communities
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
-      searches: keywords.map(k => `${k} subreddit`),
+      searches: keywords,
+      type: "community", // Specifically search for communities
+      sort: "relevance", // Sort by relevance
       maxItems: 100,
+      maxCommunitiesCount: 50, // Limit communities count
       proxy: {
         useApifyProxy: true,
         apifyProxyGroups: ["RESIDENTIAL"]
-      }
+      },
+      searchCommunities: true, // Ensure we're searching communities
+      searchPosts: false, // Disable post search
+      time: "all"
     });
 
     const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
     
-    // Score and filter subreddits
-    const scoredSubreddits = items
-      .map(item => ({
-        ...item,
-        relevanceScore: calculateRelevanceScore(item, keywords)
-      }))
-      .filter(item => item.relevanceScore >= 75)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 20);
-
-    // Transform and filter new results
-    const newSubreddits = scoredSubreddits
+    // Transform and filter communities
+    const newSubreddits = items
       .filter(item => 
         item.dataType === "community" &&
-        item.numberOfMembers >= 1000 &&
-        !item.over18 &&
-        // Filter out existing subreddits
-        !existingSubreddits.some(existing => 
-          existing.name.toLowerCase() === (item.displayName || item.title.replace(/^r\//, '')).toLowerCase()
-        )
+        item.numberOfMembers >= 10000 && // Increased minimum member threshold
+        !item.over18
       )
       .map(item => ({
-        name: item.displayName || item.title.replace(/^r\//, ''),
-        title: item.title || item.displayName,
+        name: item.title?.replace(/^r\//, '') || '',
+        title: item.title || '',
         description: item.description || "",
         memberCount: parseInt(item.numberOfMembers) || 0,
-        url: item.url || `https://reddit.com/r/${item.displayName || item.title.replace(/^r\//, '')}`,
+        url: `https://reddit.com${item.url || `/r/${item.title?.replace(/^r\//, '')}`}`,
         relevanceScore: calculateRelevanceScore(item, keywords),
         matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
         isMonitored: false,
         productId
-      }));
+      }))
+      .filter(sub => sub.relevanceScore >= 75) // Only keep highly relevant ones
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 20); // Keep top 20 most relevant
 
-    // Store new subreddits one by one to handle duplicates
+    // Store new subreddits
     for (const subreddit of newSubreddits) {
       try {
         await prisma.subredditSuggestion.create({
           data: subreddit
         });
       } catch (error) {
-        // Ignore duplicate key errors
         console.log(`Skipping duplicate subreddit: ${subreddit.name}`);
       }
     }
@@ -167,4 +162,52 @@ function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
   
   // Cap the score
   return Math.min(100, Math.max(0, score));
+}
+
+// Helper function to search for subreddits using Apify
+async function getSubredditsFromApify(keywords: string[]) {
+  try {
+    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
+      searches: keywords,
+      type: "community", // Specifically search for communities
+      sort: "relevance", // Sort by relevance to get most relevant communities
+      maxItems: 100, // Get more items to filter down to best matches
+      maxCommunitiesCount: 20, // Limit to 20 most relevant communities
+      proxy: {
+        useApifyProxy: true,
+        apifyProxyGroups: ["RESIDENTIAL"]
+      },
+      searchCommunities: true,
+      searchPosts: false, // Disable post search
+      time: "all"
+    });
+
+    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+
+    // Filter and format subreddits
+    const subreddits = items
+      .filter((item: any) => 
+        item.dataType === 'community' && 
+        item.numberOfMembers > 10000 // Only communities with significant membership
+      )
+      .map((item: any) => ({
+        name: item.title,
+        title: item.title,
+        description: item.description || '',
+        memberCount: item.numberOfMembers,
+        url: item.url,
+        relevanceScore: calculateRelevanceScore(item, keywords),
+        matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
+        isMonitored: false,
+        productId
+      }))
+      .filter(sub => sub.relevanceScore >= 75) // Only keep highly relevant ones
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 20); // Keep top 20 most relevant
+
+    return subreddits;
+  } catch (error) {
+    console.error("Error in findRelevantSubreddits:", error);
+    return [];
+  }
 } 
