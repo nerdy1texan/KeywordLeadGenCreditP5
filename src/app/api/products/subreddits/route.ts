@@ -27,62 +27,106 @@ export const GET = withMiddleware(async (req: NextRequest) => {
       orderBy: { relevanceScore: 'desc' }
     });
 
+    const existingNames = new Set(existingSubreddits.map(sub => sub.name.toLowerCase()));
+
     // Extract keywords and find new subreddits
     const keywords = await extractKeywords(description);
     console.log('Searching with keywords:', keywords);
 
-    // Updated Apify configuration to specifically search for communities
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
       searches: keywords,
-      type: "community", // Specifically search for communities
-      sort: "relevance", // Sort by relevance
-      maxItems: 100,
-      maxCommunitiesCount: 50, // Limit communities count
+      type: "community",
+      sort: "relevance",
+      maxItems: 200,
+      maxCommunitiesCount: 100,
       proxy: {
         useApifyProxy: true,
         apifyProxyGroups: ["RESIDENTIAL"]
       },
-      searchCommunities: true, // Ensure we're searching communities
-      searchPosts: false, // Disable post search
+      searchCommunities: true,
+      searchPosts: false,
       time: "all"
     });
 
     const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
     
-    // Transform and filter communities
-    const newSubreddits = items
+    // Process and filter new subreddits
+    const newSubredditsData = items
       .filter(item => 
         item.dataType === "community" &&
-        item.numberOfMembers >= 10000 && // Increased minimum member threshold
-        !item.over18
+        item.numberOfMembers >= 1000 && // Lowered threshold
+        !item.over18 &&
+        item.displayName // Ensure displayName exists
       )
-      .map(item => ({
-        name: item.title?.replace(/^r\//, '') || '',
-        title: item.title || '',
-        description: item.description || "",
-        memberCount: parseInt(item.numberOfMembers) || 0,
-        url: `https://reddit.com${item.url || `/r/${item.title?.replace(/^r\//, '')}`}`,
-        relevanceScore: calculateRelevanceScore(item, keywords),
-        matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
-        isMonitored: false,
-        productId
-      }))
-      .filter(sub => sub.relevanceScore >= 75) // Only keep highly relevant ones
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 20); // Keep top 20 most relevant
+      .map(item => {
+        // Clean the subreddit name (remove 'r/' prefix if present)
+        const name = (item.displayName || item.title || '')
+          .replace(/^r\//i, '')
+          .toLowerCase();
 
-    // Store new subreddits
-    for (const subreddit of newSubreddits) {
+        // Skip if already exists
+        if (existingNames.has(name)) {
+          console.log(`Skipping existing subreddit: ${name}`);
+          return null;
+        }
+
+        const relevanceScore = calculateRelevanceScore(item, keywords);
+        
+        // Only include if relevance score is high enough
+        if (relevanceScore < 75) {
+          console.log(`Skipping low relevance subreddit: ${name} (${relevanceScore}%)`);
+          return null;
+        }
+
+        return {
+          name,
+          title: item.title || name,
+          description: item.description || "No description available",
+          memberCount: parseInt(item.numberOfMembers) || 0,
+          url: `https://reddit.com/r/${name}`,
+          relevanceScore,
+          matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
+          isMonitored: false,
+          productId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      })
+      .filter(Boolean) // Remove null entries
+      .sort((a, b) => b.relevanceScore - a.relevanceScore);
+
+    console.log(`Found ${newSubredditsData.length} new relevant subreddits`);
+
+    // Store new subreddits in database
+    if (newSubredditsData.length > 0) {
       try {
-        await prisma.subredditSuggestion.create({
-          data: subreddit
-        });
+        await prisma.$transaction(
+          newSubredditsData.map(subreddit => 
+            prisma.subredditSuggestion.upsert({
+              where: {
+                productId_name: {
+                  productId: productId,
+                  name: subreddit.name
+                }
+              },
+              update: {
+                relevanceScore: subreddit.relevanceScore,
+                matchReason: subreddit.matchReason,
+                description: subreddit.description,
+                memberCount: subreddit.memberCount,
+                updatedAt: new Date()
+              },
+              create: subreddit
+            })
+          )
+        );
+        console.log(`Successfully processed ${newSubredditsData.length} subreddits`);
       } catch (error) {
-        console.log(`Skipping duplicate subreddit: ${subreddit.name}`);
+        console.error('Error processing subreddits:', error);
       }
     }
 
-    // Get all subreddits after adding new ones
+    // Return updated list
     const allSubreddits = await prisma.subredditSuggestion.findMany({
       where: { productId },
       orderBy: { relevanceScore: 'desc' }

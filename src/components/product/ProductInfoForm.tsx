@@ -12,7 +12,7 @@ import { Card } from "@/components/ui/card";
 import { notify } from "@/components/Toaster";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Trash as TrashIcon, Loader2, PencilIcon } from "lucide-react";
+import { X, Plus, Trash as TrashIcon, Loader2, PencilIcon, Search } from "lucide-react";
 import { SubredditGrid } from './SubredditGrid';
 import { type SubredditSuggestion } from "@/types/product";
 
@@ -31,6 +31,7 @@ export default function ProductInfoForm() {
   const [productId, setProductId] = useState<string>("");
   const [isLoadingSubreddits, setIsLoadingSubreddits] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
+  const [isSearchingSubreddits, setIsSearchingSubreddits] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -153,52 +154,30 @@ export default function ProductInfoForm() {
   };
 
   const handleFindSubreddits = async () => {
-    if (!formik.values.description) {
-      notify({ message: "Please enter a product description first", type: "error" });
-      return;
-    }
-
-    if (!productId) {
-      notify({ message: "Please save the product first", type: "error" });
-      return;
-    }
-
-    setIsLoadingSubreddits(true);
+    if (!formik.values.description || !productId) return;
+    
+    setIsSearchingSubreddits(true);
     try {
-      const response = await fetch(
-        `/api/products/subreddits?description=${encodeURIComponent(formik.values.description)}&productId=${productId}`
-      );
+      const response = await fetch(`/api/products/subreddits?description=${encodeURIComponent(formik.values.description)}&productId=${productId}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch subreddits');
       }
       
       const newSubreddits = await response.json();
-      
-      // Ensure all required fields are present
-      const validSubreddits = newSubreddits.map((sub: any) => ({
-        id: sub.id,
-        name: sub.name,
-        title: sub.title || sub.name,
-        description: sub.description || '',
-        memberCount: typeof sub.memberCount === 'number' ? sub.memberCount : 0,
-        url: sub.url,
-        relevanceScore: typeof sub.relevanceScore === 'number' ? sub.relevanceScore : 0,
-        matchReason: sub.matchReason || '',
-        isMonitored: sub.isMonitored || false,
-        productId: sub.productId || productId
-      }));
-
-      setSubreddits(validSubreddits);
-
+      if (Array.isArray(newSubreddits)) {
+        setSubreddits(newSubreddits);
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error('Error finding subreddits:', error);
       notify({ 
-        message: error instanceof Error ? error.message : 'Failed to find subreddits', 
+        message: error instanceof Error ? error.message : 'Failed to find relevant subreddits', 
         type: 'error' 
       });
     } finally {
-      setIsLoadingSubreddits(false);
+      setIsSearchingSubreddits(false);
     }
   };
 
@@ -244,16 +223,16 @@ export default function ProductInfoForm() {
 
   useEffect(() => {
     const loadExistingSubreddits = async () => {
-      if (productId) {
-        try {
-          const response = await fetch(`/api/products/${productId}/subreddits`);
-          if (response.ok) {
-            const data = await response.json();
-            setSubreddits(data);
-          }
-        } catch (error) {
-          console.error('Error loading existing subreddits:', error);
+      if (!productId) return;
+      
+      try {
+        const response = await fetch(`/api/products/${productId}/subreddits`);
+        if (response.ok) {
+          const existingSubreddits = await response.json();
+          setSubreddits(existingSubreddits);
         }
+      } catch (error) {
+        console.error('Error loading existing subreddits:', error);
       }
     };
 
@@ -477,35 +456,39 @@ export default function ProductInfoForm() {
 
           {/* Action Buttons */}
           <div className="flex justify-between items-center mt-6">
-            <Button 
+            <Button
+              type="button"
               onClick={handleFindSubreddits}
-              disabled={isLoadingSubreddits}
-              className="bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 text-white"
+              disabled={isSearchingSubreddits || !formik.values.description}
+              className="w-auto"
             >
-              {isLoadingSubreddits ? (
+              {isSearchingSubreddits ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Finding Subreddits...
                 </>
               ) : (
-                "Find Relevant Subreddits"
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Find Relevant Subreddits
+                </>
               )}
             </Button>
-
-            <Button 
+            
+            <Button
               type="submit"
-              disabled={loading}
-              className="min-w-[150px] bg-gradient-to-r from-blue-500 to-violet-500 hover:from-blue-600 hover:to-violet-600 text-white"
+              disabled={formik.isSubmitting}
+              className="w-auto"
             >
-              {loading ? "Saving..." : "Save Product Info"}
+              Save Product Info
             </Button>
           </div>
         </form>
       </Card>
 
       <SubredditGrid 
-        subreddits={subreddits} 
-        isLoading={isLoadingSubreddits}
+        subreddits={subreddits}
+        isLoading={isSearchingSubreddits}
       />
     </div>
   );
