@@ -40,7 +40,8 @@ export default function ProductInfoForm() {
       description: "",
       keywords: [],
       plans: [],
-    } as ProductFormData,
+      productId: "",
+    } as ProductFormData & { productId?: string },
     validate: withZodSchema(productSchema),
     onSubmit: async (values) => {
       setLoading(true);
@@ -48,7 +49,10 @@ export default function ProductInfoForm() {
         const response = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            ...values,
+            productId: productId
+          }),
         });
 
         const data = await response.json();
@@ -57,7 +61,7 @@ export default function ProductInfoForm() {
           throw new Error(data.error || data.details || "Failed to save product info");
         }
 
-        notify({ message: "Product information saved successfully!", type: "success" });
+        notify({ message: "Product information updated successfully!", type: "success" });
       } catch (error: any) {
         console.error("Form submission error:", error);
         notify({ 

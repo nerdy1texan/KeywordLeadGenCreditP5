@@ -1,7 +1,7 @@
 // src/app/api/products/route.ts
 
 import { withMiddleware } from "@/lib/apiHelper";
-import { createProduct } from "@/lib/services/product";
+import { upsertProduct } from "@/lib/services/product";
 import { productSchema } from "@/lib/validation/product";
 import { getSession } from "@/lib/session";
 import { type NextRequest, NextResponse } from "next/server";
@@ -20,7 +20,11 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       const validatedData = productSchema.parse(data);
       console.log('Validated data:', JSON.stringify(validatedData, null, 2));
       
-      const product = await createProduct(session.user.id, validatedData);
+      const product = await upsertProduct(
+        session.user.id, 
+        validatedData,
+        data.productId
+      );
       return NextResponse.json(product);
     } catch (validationError: any) {
       console.error('Validation error:', validationError);
@@ -31,7 +35,6 @@ export const POST = withMiddleware(async (req: NextRequest) => {
     }
   } catch (error: any) {
     console.error("API Error:", error);
-    // Return more detailed error information
     return NextResponse.json(
       { 
         error: "Failed to save product information",

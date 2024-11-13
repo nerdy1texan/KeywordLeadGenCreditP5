@@ -14,6 +14,7 @@ export const productSchema = z.object({
   description: z.string().min(10, "Description must be at least 10 characters"),
   keywords: z.array(z.string()).min(1, "At least one keyword is required"),
   plans: z.array(planSchema).optional(),
+  productId: z.string().optional(),
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;

@@ -177,3 +177,66 @@ export async function getLatestProductByUser(userId: string): Promise<Product | 
     return null; // Return null instead of throwing error
   }
 }
+
+export async function upsertProduct(
+  userId: string,
+  data: ProductFormData,
+  productId?: string
+): Promise<Product> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { userGroup: true }
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Upsert the product
+    const product = await prisma.product.upsert({
+      where: {
+        id: productId || 'dummy-id', // If no productId, use dummy that won't match
+      },
+      update: {
+        name: data.name,
+        url: data.url || null,
+        description: data.description,
+        keywords: data.keywords,
+        // Update plans
+        plans: {
+          deleteMany: {}, // Remove existing plans
+          create: data.plans?.map(plan => ({
+            name: plan.name,
+            price: plan.price,
+            features: plan.features
+          })) || []
+        }
+      },
+      create: {
+        name: data.name,
+        url: data.url || null,
+        description: data.description,
+        keywords: data.keywords,
+        userId: userId,
+        plans: {
+          create: data.plans?.map(plan => ({
+            name: plan.name,
+            price: plan.price,
+            features: plan.features
+          })) || []
+        }
+      },
+      include: {
+        plans: true,
+        monitoredSubreddits: true,
+        redditPosts: true,
+      },
+    });
+
+    return product;
+  } catch (error) {
+    console.error("Error upserting product:", error);
+    throw error;
+  }
+}
