@@ -204,23 +204,17 @@ export default function MainDashboard() {
               }))}
               className="cursor-pointer"
             >
-              <div className="relative group transform transition-all duration-200 hover:scale-102">
+              <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-102">
                 <div 
-                  className={`absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl group-hover:blur-2xl transition-all duration-200 opacity-75 group-hover:opacity-100`}
+                  className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl group-hover:blur-2xl transition-all duration-200 opacity-75 group-hover:opacity-100"
                 />
-                <div className="relative h-full p-6 rounded-xl border border-gray-800/50 bg-gray-900/90 backdrop-blur-sm">
-                  {/* Community Header */}
+                <div className="relative h-full p-6 rounded-xl border border-gray-800/50 bg-gray-900/90 backdrop-blur-sm flex flex-col">
+                  {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <a 
-                        href={`https://reddit.com/r/${subreddit.name}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors"
-                        onClick={e => e.stopPropagation()}
-                      >
+                      <h3 className="text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors">
                         r/{subreddit.name}
-                      </a>
+                      </h3>
                       <div className="flex items-center gap-2 mt-1">
                         <UsersIcon className="h-4 w-4 text-gray-500" />
                         <span className="text-sm text-gray-400">
@@ -228,23 +222,31 @@ export default function MainDashboard() {
                         </span>
                       </div>
                     </div>
-                    <Badge 
-                      className="bg-purple-500/10 border-purple-500/20 text-purple-400"
-                    >
+                    <Badge className="bg-purple-500/10 border-purple-500/20 text-purple-400">
                       {subreddit.relevanceScore}% match
                     </Badge>
                   </div>
 
                   {/* Description */}
-                  <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                  <p className="text-sm text-gray-400 flex-grow line-clamp-3">
                     {subreddit.description || 'No description available'}
                   </p>
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="text-sm text-gray-500">
-                      Click to view posts
-                    </div>
+                  <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-800/50">
+                    <Button
+                      variant="ghost"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters(prev => ({
+                          ...prev,
+                          subreddits: [subreddit.name]
+                        }));
+                      }}
+                    >
+                      View Posts →
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -254,7 +256,7 @@ export default function MainDashboard() {
                         window.open(`https://reddit.com/r/${subreddit.name}`, '_blank');
                       }}
                     >
-                      Visit →
+                      Visit Reddit
                     </Button>
                   </div>
                 </div>
