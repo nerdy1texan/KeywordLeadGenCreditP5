@@ -31,7 +31,7 @@ export default function MainDashboard() {
 
   useEffect(() => {
     fetchMonitoredSubreddits();
-  }, []);
+  }, [monitoredSubreddits]);
 
   useEffect(() => {
     if (monitoredSubreddits.length > 0) {

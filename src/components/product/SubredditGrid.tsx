@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type SubredditSuggestion } from "@/types/product";
+import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
 
 interface SubredditGridProps {
   subreddits: SubredditSuggestion[];
@@ -14,6 +16,29 @@ const getRelevanceBadgeVariant = (score: number) => {
 };
 
 export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
+  const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>(subreddits);
+
+  const handleToggle = async (subreddit: SubredditSuggestion) => {
+    try {
+      const updatedSubreddit = { ...subreddit, isMonitored: !subreddit.isMonitored };
+      const response = await fetch(`/api/reddit/subreddits/${subreddit.id}/monitor`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isMonitored: updatedSubreddit.isMonitored }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update monitoring status");
+      }
+
+      setMonitoredSubreddits((prev) =>
+        prev.map((sub) => (sub.id === subreddit.id ? updatedSubreddit : sub))
+      );
+    } catch (error) {
+      console.error("Error updating monitoring status:", error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -34,8 +59,7 @@ export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
     );
   }
 
-  // Sort subreddits by relevance score
-  const sortedSubreddits = [...subreddits].sort((a, b) => b.relevanceScore - a.relevanceScore);
+  const sortedSubreddits = [...monitoredSubreddits].sort((a, b) => b.relevanceScore - a.relevanceScore);
 
   return (
     <div className="space-y-4">
@@ -71,11 +95,11 @@ export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
                 >
                   Relevance: {Math.round(subreddit.relevanceScore)}%
                 </Badge>
-                {subreddit.isMonitored && (
-                  <Badge variant="success-gradient" className="mt-2">
-                    Monitored
-                  </Badge>
-                )}
+                <Switch
+                  checked={subreddit.isMonitored}
+                  onChange={() => handleToggle(subreddit)}
+                  className="mt-2"
+                />
               </div>
             </div>
           ))}
