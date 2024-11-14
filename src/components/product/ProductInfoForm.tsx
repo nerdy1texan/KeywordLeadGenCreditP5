@@ -493,6 +493,7 @@ export default function ProductInfoForm() {
       <SubredditGrid 
         subreddits={subreddits}
         isLoading={isSearchingSubreddits}
+        onSubredditsChange={setSubreddits}
       />
     </div>
   );

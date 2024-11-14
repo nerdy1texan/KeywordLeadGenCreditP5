@@ -1,3 +1,5 @@
+// src/components/ui/switch.tsx
+
 import { Switch as HeadlessSwitch } from "@headlessui/react";
 
 export function Switch({ checked, onChange, className }: { checked: boolean; onChange: () => void; className?: string }) {

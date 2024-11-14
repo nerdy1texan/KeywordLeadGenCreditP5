@@ -1,3 +1,5 @@
+// src/components/MainDashboard.tsx
+
 "use client";
 
 import { useState, useEffect } from 'react';

@@ -1,12 +1,16 @@
+// src/components/product/SubredditGrid.tsx
+
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type SubredditSuggestion } from "@/types/product";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { notify } from "@/components/Toaster";
 
 interface SubredditGridProps {
   subreddits: SubredditSuggestion[];
   isLoading?: boolean;
+  onSubredditsChange?: (subreddits: SubredditSuggestion[]) => void;
 }
 
 const getRelevanceBadgeVariant = (score: number) => {
@@ -15,27 +19,59 @@ const getRelevanceBadgeVariant = (score: number) => {
   return "secondary-gradient";
 };
 
-export function SubredditGrid({ subreddits, isLoading }: SubredditGridProps) {
+export function SubredditGrid({ subreddits, isLoading, onSubredditsChange }: SubredditGridProps) {
   const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>(subreddits);
+
+  useEffect(() => {
+    setMonitoredSubreddits(subreddits);
+  }, [subreddits]);
 
   const handleToggle = async (subreddit: SubredditSuggestion) => {
     try {
-      const updatedSubreddit = { ...subreddit, isMonitored: !subreddit.isMonitored };
-      const response = await fetch(`/api/reddit/subreddits/${subreddit.id}/monitor`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isMonitored: updatedSubreddit.isMonitored }),
+      if (!subreddit.id) {
+        throw new Error("Subreddit ID is required");
+      }
+
+      console.log('Toggling subreddit:', {
+        id: subreddit.id,
+        name: subreddit.name,
+        currentStatus: subreddit.isMonitored
       });
 
+      const response = await fetch(`/api/reddit/subreddits/${subreddit.id}/monitor`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          isMonitored: !subreddit.isMonitored 
+        }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to update monitoring status");
+        console.error('Error response:', data);
+        throw new Error(data.error || data.details || "Failed to update monitoring status");
       }
 
       setMonitoredSubreddits((prev) =>
-        prev.map((sub) => (sub.id === subreddit.id ? updatedSubreddit : sub))
+        prev.map((sub) => (sub.id === subreddit.id ? { ...sub, isMonitored: data.isMonitored } : sub))
       );
-    } catch (error) {
+
+      notify({
+        message: data.isMonitored 
+          ? `Now monitoring r/${subreddit.name}`
+          : `Stopped monitoring r/${subreddit.name}`,
+        type: "success"
+      });
+    } catch (error: any) {
       console.error("Error updating monitoring status:", error);
+      notify({
+        message: `Failed to update monitoring status for r/${subreddit.name}: ${error.message}`,
+        type: "error"
+      });
     }
   };
 
