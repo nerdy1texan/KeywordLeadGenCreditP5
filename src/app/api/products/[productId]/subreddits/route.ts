@@ -6,21 +6,20 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
   try {
     const { productId } = params;
     
-    if (!productId) {
-      return new NextResponse(
-        JSON.stringify({ error: "Product ID is required" }), 
-        { status: 400 }
-      );
-    }
+    // Debug log
+    console.log('Attempting to fetch subreddits for productId:', productId);
 
     const subreddits = await prisma.subredditSuggestion.findMany({
       where: { 
-        productId: productId // Ensure productId is a string
+        productId: productId
       },
       orderBy: { 
         relevanceScore: 'desc' 
       }
     });
+
+    // Debug log
+    console.log('Found subreddits count:', subreddits.length);
 
     // Format the response data
     const formattedSubreddits = subreddits.map(subreddit => ({
@@ -28,9 +27,9 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
       name: subreddit.name,
       title: subreddit.title,
       description: subreddit.description,
-      memberCount: Number(subreddit.memberCount),
+      memberCount: Number(subreddit.memberCount || 0), // Add null check
       url: subreddit.url,
-      relevanceScore: Number(subreddit.relevanceScore),
+      relevanceScore: Number(subreddit.relevanceScore || 0), // Add null check
       matchReason: subreddit.matchReason || '',
       isMonitored: Boolean(subreddit.isMonitored),
       productId: subreddit.productId,
@@ -40,11 +39,19 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
 
     return NextResponse.json(formattedSubreddits);
   } catch (error: any) {
-    console.error("API Error:", error);
+    // Enhanced error logging
+    console.error("API Error:", {
+      message: error.message,
+      stack: error.stack,
+      productId: params.productId,
+      error: error
+    });
+
     return new NextResponse(
       JSON.stringify({ 
         error: "Failed to fetch subreddits",
-        details: error.message 
+        details: error.message,
+        productId: params.productId
       }), 
       { 
         status: 500,

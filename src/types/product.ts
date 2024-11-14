@@ -47,11 +47,26 @@ export type Product = {
   userId: string;
 };
 
-export type RedditPost = {
+export interface RedditPost {
   id: string;
+  redditId: string;
   title: string;
-  content: string;
+  text: string;
   url: string;
-  productId: string;
+  subreddit: string;
+  author: string;
   createdAt: Date;
-};
+  productId: string;
+  engagement: 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT' | 'Engagement';
+  fit: number;
+  authenticity: number;
+  lead: number;
+  isFavorited: boolean;
+  isReplied: boolean;
+}
+
+// If you need a type for creating a new post
+export type CreateRedditPost = Omit<RedditPost, 'id'>;
+
+// If you need a type for updating a post
+export type UpdateRedditPost = Partial<Omit<RedditPost, 'id' | 'redditId' | 'productId'>>;

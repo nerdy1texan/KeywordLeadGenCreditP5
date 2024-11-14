@@ -13,8 +13,10 @@ import { useToast } from "./ui/use-toast";
 import { motion } from "framer-motion";
 import { RefreshCw, UsersIcon } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
+import { MonitoringDialog } from "./MonitoringDialog";
+import { type RedditPost } from '@prisma/client';
 
-export default function MainDashboard() {
+export default function MainDashboard({ productId }: { productId: string }) {
   const [posts, setPosts] = useState<RedditPost[]>([]);
   const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +40,25 @@ export default function MainDashboard() {
     postsPerSubreddit: 10,
     timeRange: 'week' as 'day' | 'week' | 'month' | 'all'
   });
+  const [showMonitoringDialog, setShowMonitoringDialog] = useState(false);
+  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
+  const [engagement, setEngagement] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMonitoredSubreddits();
+    
+    // Add event listener for post refreshes
+    const handleRefreshPosts = () => {
+      fetchPosts();
+    };
+    
+    window.addEventListener('refreshPosts', handleRefreshPosts);
+    
+    return () => {
+      window.removeEventListener('refreshPosts', handleRefreshPosts);
+    };
   }, []);
 
   useEffect(() => {
@@ -48,6 +66,39 @@ export default function MainDashboard() {
       fetchPosts();
     }
   }, [filters]);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const response = await fetch('/api/products/latest');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentProduct(data);
+      }
+    };
+    fetchProduct();
+  }, []);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const params = new URLSearchParams({
+          sortBy,
+          sortOrder,
+          ...(engagement ? { engagement } : {})
+        });
+        
+        const response = await fetch(`/api/products/${productId}/posts?${params}`);
+        const data = await response.json();
+        setPosts(data);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [productId, sortBy, sortOrder, engagement]);
 
   const fetchMonitoredSubreddits = async () => {
     try {
@@ -77,27 +128,6 @@ export default function MainDashboard() {
     }
   };
 
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const queryParams = new URLSearchParams({
-        subreddits: filters.subreddits.join(','),
-        timeRange: filters.timeRange,
-        onlyUnseen: filters.onlyUnseen.toString(),
-        onlyFavorited: filters.onlyFavorited.toString(),
-      });
-      
-      const response = await fetch(`/api/reddit/posts?${queryParams}`);
-      const data = await response.json();
-      setPosts(data);
-      updateStats(data);
-    } catch (error) {
-      console.error('Failed to fetch posts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const updateStats = (posts: RedditPost[]) => {
     setStats({
       estimatedValue: calculateEstimatedValue(posts),
@@ -107,32 +137,34 @@ export default function MainDashboard() {
     });
   };
 
-  const startScraping = async () => {
+  const startMonitoring = async (config: MonitoringConfig) => {
     try {
       setIsScrapingJob(true);
-      const response = await fetch('/api/reddit/scrape', {
+      
+      const response = await fetch('/api/reddit/monitor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          subreddits: filters.subreddits,
-          ...scrapingConfig
-        }),
-        credentials: 'include'
+        body: JSON.stringify(config),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to start scraping job');
+        throw new Error('Failed to start monitoring job');
       }
 
       const data = await response.json();
-      console.log('Scraping job started:', data);
+      console.log('Monitoring job started:', data);
       
-      // Poll for updates or use WebSocket to get real-time updates
-      // This depends on your backend implementation
+      // Refresh posts after monitoring
+      await fetchPosts();
     } catch (error) {
-      console.error('Failed to start scraping:', error);
+      console.error('Failed to start monitoring:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start monitoring. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsScrapingJob(false);
     }
@@ -148,43 +180,25 @@ export default function MainDashboard() {
             Monitor and analyze posts from your selected communities
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <Select
-            value={scrapingConfig.timeRange}
-            onValueChange={(value) => setScrapingConfig(prev => ({ 
-              ...prev, 
-              timeRange: value as typeof scrapingConfig.timeRange 
-            }))}
-          >
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Time Range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="day">Past Day</SelectItem>
-              <SelectItem value="week">Past Week</SelectItem>
-              <SelectItem value="month">Past Month</SelectItem>
-              <SelectItem value="all">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button 
-            onClick={startScraping}
-            className="flex items-center gap-2"
-            disabled={isScrapingJob || filters.subreddits.length === 0}
-          >
-            {isScrapingJob ? (
-              <>
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Scraping...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="h-4 w-4" />
-                Start Scraping
-              </>
-            )}
-          </Button>
-        </div>
+        <Button 
+          onClick={() => setShowMonitoringDialog(true)}
+          disabled={!currentProduct || monitoredSubreddits.length === 0}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Start Monitoring
+        </Button>
       </div>
+
+      {/* Add the dialog */}
+      {currentProduct && (
+        <MonitoringDialog
+          isOpen={showMonitoringDialog}
+          onClose={() => setShowMonitoringDialog(false)}
+          monitoredSubreddits={monitoredSubreddits}
+          productId={currentProduct.id}
+        />
+      )}
 
       {/* Monitored Communities Section */}
       <div className="mb-8">
