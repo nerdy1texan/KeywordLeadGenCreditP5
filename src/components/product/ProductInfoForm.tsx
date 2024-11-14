@@ -270,6 +270,43 @@ export default function ProductInfoForm() {
     handleDeletePlan(index);
   };
 
+  const handleToggle = async (subreddit: SubredditSuggestion) => {
+    try {
+      const response = await fetch(`/api/reddit/subreddits/${subreddit.id}/monitor`, {
+        method: "PATCH",
+        headers: { 
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          isMonitored: !subreddit.isMonitored 
+        }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update monitoring status");
+      }
+
+      // Only update the specific subreddit that changed
+      setSubreddits(prev => 
+        prev.map(sub => 
+          sub.id === subreddit.id 
+            ? { ...sub, isMonitored: data.isMonitored }
+            : sub
+        )
+      );
+
+    } catch (error: any) {
+      console.error("Error updating monitoring status:", error);
+      notify({
+        message: `Failed to update monitoring status: ${error.message}`,
+        type: "error"
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6">

@@ -10,6 +10,7 @@ import { CommentBuilder } from "./CommentBuilder";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { RedditPost, SubredditSuggestion } from "@/types/product";
 import { useToast } from "./ui/use-toast";
+import { motion } from "framer-motion";
 
 export default function MainDashboard() {
   const [posts, setPosts] = useState<RedditPost[]>([]);
@@ -33,26 +34,39 @@ export default function MainDashboard() {
 
   useEffect(() => {
     fetchMonitoredSubreddits();
-  }, [monitoredSubreddits]);
+  }, []);
 
   useEffect(() => {
     if (monitoredSubreddits.length > 0) {
       fetchPosts();
     }
-  }, [filters, monitoredSubreddits]);
+  }, [filters]);
 
   const fetchMonitoredSubreddits = async () => {
     try {
-      const response = await fetch('/api/reddit/monitored-subreddits');
+      setLoading(true);
+      const response = await fetch('/api/reddit/monitored-subreddits', {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch monitored subreddits');
+      }
+      
       const data = await response.json();
+      console.log('Fetched monitored subreddits:', data);
+      
       setMonitoredSubreddits(data);
-      // Update filters with monitored subreddits
-      setFilters(prev => ({
-        ...prev,
-        subreddits: data.map((sub: SubredditSuggestion) => sub.name)
-      }));
+      if (data.length > 0) {
+        setFilters(prev => ({
+          ...prev,
+          subreddits: data.map((sub: SubredditSuggestion) => sub.name)
+        }));
+      }
     } catch (error) {
       console.error('Failed to fetch monitored subreddits:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,8 +100,18 @@ export default function MainDashboard() {
     });
   };
 
+  const refreshData = () => {
+    fetchMonitoredSubreddits();
+  };
+
   return (
     <div className="space-y-6 p-6">
+      <div className="flex justify-end">
+        <Button onClick={refreshData} variant="outline">
+          Refresh Data
+        </Button>
+      </div>
+
       {/* Stats Section */}
       <div className="grid grid-cols-4 gap-4">
         <Card className="p-4">
@@ -110,6 +134,71 @@ export default function MainDashboard() {
           <p className="text-2xl font-bold">{stats.unseen}</p>
           <p className="text-xs text-gray-500">0 - 0% community growth.</p>
         </Card>
+      </div>
+
+      {/* New Monitored Subreddits Section */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Monitored Communities</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {monitoredSubreddits.map((subreddit, index) => (
+            <motion.div
+              key={subreddit.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/50 to-pink-500/50 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200" />
+                <div className="relative p-6 bg-gray-900 border border-gray-800 rounded-lg hover:border-gray-700 transition-all duration-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <a 
+                      href={`https://reddit.com/r/${subreddit.name}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                    >
+                      r/{subreddit.name}
+                    </a>
+                    <Badge variant="outline" className="bg-gray-800/50">
+                      {(subreddit.memberCount || 0).toLocaleString()} members
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                    {subreddit.description || 'No description available'}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <Badge 
+                        variant="secondary"
+                        className="bg-purple-500/10 text-purple-400 border-purple-500/20"
+                      >
+                        {subreddit.relevanceScore}% relevant
+                      </Badge>
+                      {subreddit.matchReason && (
+                        <Badge 
+                          variant="secondary"
+                          className="bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        >
+                          {subreddit.matchReason}
+                        </Badge>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-400 hover:text-gray-300"
+                      onClick={() => window.open(`https://reddit.com/r/${subreddit.name}`, '_blank')}
+                    >
+                      View →
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {monitoredSubreddits.length === 0 ? (
