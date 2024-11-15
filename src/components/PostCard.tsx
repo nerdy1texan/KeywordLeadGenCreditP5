@@ -8,7 +8,13 @@ import { useToast } from './ui/use-toast';
 import { CommentBuilder } from './CommentBuilder';
 
 interface PostCardProps {
-  post: RedditPost;
+  post: RedditPost & {
+    product: {
+      name: string;
+      description: string;
+      keywords: string[];
+    }
+  };
   onGenerateReply: () => void;
 }
 
@@ -28,6 +34,9 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
       if (!response.ok) throw new Error('Failed to generate reply');
 
       const updatedPost = await response.json();
+      post.latestReply = updatedPost.latestReply;
+      post.product = updatedPost.product;
+      
       setShowCommentBuilder(true);
       onGenerateReply();
       
@@ -36,6 +45,7 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
         description: "Your reply has been generated successfully!",
       });
     } catch (error) {
+      console.error('Generate reply error:', error);
       toast({
         title: "Error",
         description: "Failed to generate reply. Please try again.",
@@ -177,11 +187,9 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
           isOpen={showCommentBuilder}
           onClose={() => {
             setShowCommentBuilder(false);
+            onGenerateReply(); // Refresh the post data after closing
           }}
-          post={{
-            ...post,
-            product: post.product
-          }}
+          post={post}
         />
       )}
 

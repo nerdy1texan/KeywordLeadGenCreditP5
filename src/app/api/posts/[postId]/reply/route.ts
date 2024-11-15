@@ -75,6 +75,15 @@ export async function POST(
       where: { id: postId },
       data: {
         latestReply: generatedReply
+      },
+      include: {
+        product: {
+          select: {
+            name: true,
+            description: true,
+            keywords: true
+          }
+        }
       }
     });
 
