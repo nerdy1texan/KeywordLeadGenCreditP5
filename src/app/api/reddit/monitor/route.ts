@@ -103,10 +103,35 @@ export const POST = withMiddleware(async (req: NextRequest) => {
     scoredPosts.sort((a, b) => b.lead - a.lead);
     const postsToSave = scoredPosts.slice(0, postsPerSubreddit * subreddits.length);
 
-    // Save to database
-    const savedPosts = await prisma.redditPost.createMany({
-      data: postsToSave,
-      skipDuplicates: true
+    // Save posts to database
+    const savedPosts = await prisma.$transaction(async (tx) => {
+      // Get existing redditIds
+      const existingPosts = await tx.redditPost.findMany({
+        where: {
+          redditId: {
+            in: postsToSave.map(post => post.redditId)
+          }
+        },
+        select: {
+          redditId: true
+        }
+      });
+
+      const existingIds = new Set(existingPosts.map(p => p.redditId));
+      
+      // Filter out existing posts
+      const newPosts = postsToSave.filter(post => !existingIds.has(post.redditId));
+
+      if (newPosts.length === 0) {
+        return { count: 0 };
+      }
+
+      // Save only new posts
+      const result = await tx.redditPost.createMany({
+        data: newPosts
+      });
+
+      return result;
     });
 
     return NextResponse.json({ 
