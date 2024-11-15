@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { Configuration, OpenAIApi } from "openai";
+import OpenAI from "openai";
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 export async function POST(
   req: NextRequest,
@@ -49,7 +48,7 @@ export async function POST(
       - Avoid being overly promotional
     `;
 
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         { role: "system", content: "You are a helpful assistant helping to improve a Reddit comment. Context:" },
@@ -58,7 +57,7 @@ export async function POST(
       temperature: 0.7,
     });
 
-    const generatedReply = completion.data.choices[0]?.message?.content || "";
+    const generatedReply = completion.choices[0]?.message?.content || "";
 
     // Update the post with the generated reply
     const updatedPost = await prisma.redditPost.update({
