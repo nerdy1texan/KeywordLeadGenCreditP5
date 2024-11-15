@@ -29,6 +29,15 @@ export function CommentBuilder({
   const [currentReply, setCurrentReply] = useState(initialComment);
   const { toast } = useToast();
   
+  const improvementPrompts = {
+    'Make it more personal': 'Please make this reply more personal and relatable, adding a touch of individual experience while maintaining professionalism.',
+    'Make it more professional': 'Please make this reply more professional and formal, focusing on clear, business-like communication.',
+    'Make it shorter': 'Please make this reply more concise while keeping the key points.',
+    'Make it longer': 'Please expand this reply with more details and explanations while maintaining engagement.',
+    'Add more examples': 'Please add relevant examples to illustrate the points being made.',
+    'Make it more empathetic': 'Please make this reply more empathetic and understanding, showing more emotional awareness.'
+  };
+  
   const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat({
     initialMessages: [
       {
@@ -47,25 +56,19 @@ export function CommentBuilder({
     ],
   });
 
-  // Save reply when closing
-  const handleClose = () => {
-    onSave(currentReply);
-    onClose();
-  };
-
-  const handleCustomSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-    handleSubmit(e);
+  const handlePromptClick = (promptText: string) => {
+    const fullPrompt = improvementPrompts[promptText as keyof typeof improvementPrompts];
+    handleInputChange({ target: { value: fullPrompt } } as any);
+    handleSubmit(new Event('submit') as any);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+    <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-4xl h-[80vh] overflow-hidden bg-gradient-to-b from-gray-900 to-gray-950 border-gray-800 shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center p-4 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
           <h3 className="text-lg font-semibold text-white">AI Comment Assistant</h3>
-          <Button variant="ghost" size="icon" onClick={handleClose} className="text-white hover:bg-white/20">
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-white/20">
             <X className="h-4 w-4" />
           </Button>
         </div>
@@ -108,23 +111,14 @@ export function CommentBuilder({
 
           {/* Suggestion Area */}
           <div className="flex-1 overflow-hidden flex flex-col gap-4">
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {[
-                'Make it more personal',
-                'Make it more professional',
-                'Make it shorter',
-                'Make it longer',
-                'Add more examples',
-                'Make it more empathetic'
-              ].map((prompt) => (
+            {/* Improvement Options in Grid */}
+            <div className="grid grid-cols-2 gap-2">
+              {Object.keys(improvementPrompts).map((prompt) => (
                 <Button
                   key={prompt}
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white whitespace-nowrap"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white"
                   size="sm"
-                  onClick={() => {
-                    handleInputChange({ target: { value: prompt } } as any);
-                    handleSubmit(new Event('submit') as any);
-                  }}
+                  onClick={() => handlePromptClick(prompt)}
                 >
                   {prompt}
                 </Button>
@@ -162,7 +156,7 @@ export function CommentBuilder({
 
             {/* Input Area */}
             <form 
-              onSubmit={handleCustomSubmit} 
+              onSubmit={handleSubmit} 
               className="flex gap-2 items-end bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-2 rounded-lg"
             >
               <Textarea
