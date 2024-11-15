@@ -105,8 +105,9 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         2. Maintain authenticity and helpfulness
         3. Ensure the reply adds value first
         4. Keep the product promotion subtle
-        5. Always include the product URL near the end of the reply
-        6. Preserve engaging elements`
+        5. Include the product URL exactly once near the end of the reply
+        6. Do not repeat or duplicate the URL
+        7. Preserve engaging elements`
       }
     ],
     onFinish: async (message) => {
@@ -134,9 +135,6 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             <DialogTitle className="text-xl font-semibold text-white">
               AI Comment Assistant
             </DialogTitle>
-            <Button variant="ghost" size="sm" onClick={handleClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
         
@@ -174,9 +172,9 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={handleSave}
+                      onClick={() => setIsEditing(false)}
                     >
-                      <Save className="h-4 w-4" />
+                      <Check className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -233,16 +231,18 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
               </form>
             </>
           )}
-        </div>
 
-        {/* Add Save Reply button */}
-        <div className="flex justify-end gap-2 mt-4">
-          {isEditing ? (
+          {/* Footer buttons */}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={handleClose}>
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
             <Button onClick={handleSave}>
               <Save className="h-4 w-4 mr-2" />
               Save Reply
             </Button>
-          ) : null}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
