@@ -58,28 +58,23 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     },
   });
 
-  // Handle save with optional content parameter
-  const handleSave = async (content?: string) => {
+  // Handle save and close
+  const handleSaveAndClose = async () => {
     try {
       const response = await fetch(`/api/posts/${post.id}/comment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: content || currentReply }),
+        body: JSON.stringify({ comment: currentReply }),
       });
 
       if (!response.ok) throw new Error('Failed to save reply');
       
-      const updatedPost = await response.json();
-      post.latestReply = updatedPost.latestReply;
-      
       toast({
-        title: "Saved",
+        title: "Reply Saved",
         description: "Your reply has been saved successfully!",
       });
-
-      if (!content) {
-        onClose();
-      }
+      
+      onClose();
     } catch (error) {
       console.error('Save error:', error);
       toast({
@@ -90,27 +85,19 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     }
   };
 
+  // Handle edit toggle
+  const handleEdit = () => {
+    if (isEditing) {
+      // If we're finishing editing, save the changes
+      handleSaveAndClose();
+    }
+    setIsEditing(!isEditing);
+  };
+
   // Custom submit handler to show loading state
   const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
     setIsImproving(true);
     await handleSubmit(e);
-  };
-
-  // Handle copy
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(currentReply);
-      toast({
-        title: "Copied",
-        description: "Reply copied to clipboard",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy reply",
-        variant: "destructive",
-      });
-    }
   };
 
   // Improvement prompts
@@ -123,16 +110,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     'Make it more empathetic': 'Enhance the empathy and understanding while maintaining the natural product recommendation.'
   };
 
-  // Update the edit button handler
-  const handleEdit = () => {
-    setIsEditing(!isEditing);
-    if (isEditing) {
-      handleSave(); // Save when toggling edit mode off
-    }
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={() => handleSave()}>
+    <Dialog open={isOpen} onOpenChange={handleSaveAndClose}>
       <DialogContent className="sm:max-w-[800px] bg-gray-950/80 backdrop-blur-sm border border-gray-800/50">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-white">
@@ -154,20 +133,23 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                   >
                     {isEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopy}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={handleSave}
-                  >
-                    <Save className="h-4 w-4" />
-                  </Button>
+                  {!isEditing && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(currentReply);
+                          toast({
+                            title: "Copied",
+                            description: "Reply copied to clipboard",
+                          });
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -185,37 +167,42 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             </div>
           </div>
 
-          {/* Improvement Options */}
-          <div className="grid grid-cols-2 gap-3">
-            {Object.entries(improvementPrompts).map(([label, prompt]) => (
-              <Button
-                key={label}
-                variant="outline"
-                disabled={isImproving}
-                onClick={() => handleInputChange({ target: { value: prompt } } as any)}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
+          {/* Only show improvement options when not editing */}
+          {!isEditing && (
+            <>
+              {/* Improvement Options */}
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(improvementPrompts).map(([label, prompt]) => (
+                  <Button
+                    key={label}
+                    variant="outline"
+                    disabled={isImproving}
+                    onClick={() => handleInputChange({ target: { value: prompt } } as any)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
 
-          {/* Custom Improvement Input */}
-          <form onSubmit={handleImprove} className="flex gap-2">
-            <Textarea
-              value={input}
-              onChange={handleInputChange}
-              placeholder="Type custom instructions for improving the reply..."
-              className="flex-1"
-              disabled={isImproving}
-            />
-            <Button 
-              type="submit"
-              disabled={isImproving}
-              className="self-end"
-            >
-              {isImproving ? 'Improving...' : 'Improve'}
-            </Button>
-          </form>
+              {/* Custom Improvement Input */}
+              <form onSubmit={handleImprove} className="flex gap-2">
+                <Textarea
+                  value={input}
+                  onChange={handleInputChange}
+                  placeholder="Type custom instructions for improving the reply..."
+                  className="flex-1"
+                  disabled={isImproving}
+                />
+                <Button 
+                  type="submit"
+                  disabled={isImproving}
+                  className="self-end"
+                >
+                  {isImproving ? 'Improving...' : 'Improve'}
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
