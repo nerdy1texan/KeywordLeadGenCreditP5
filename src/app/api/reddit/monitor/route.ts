@@ -8,138 +8,123 @@ const apifyClient = new ApifyClient({
   token: process.env.APIFY_API_TOKEN,
 });
 
+const MIN_POSTS_PER_SUBREDDIT = 10;
+
+async function getRedditPosts(subreddit: string, postsCount: number) {
+  try {
+    console.log(`Starting Apify scrape for r/${subreddit} with count ${postsCount}`);
+    
+    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
+      startUrls: [{
+        url: `https://www.reddit.com/r/${subreddit.toLowerCase()}/`,
+        method: "GET"
+      }],
+      maxItems: postsCount,
+      maxPostCount: postsCount,
+      proxy: {
+        useApifyProxy: true
+      }
+    });
+
+    const dataset = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    
+    // Filter only post items and transform to match our schema
+    const posts = dataset?.items?.filter(item => 
+      item?.dataType === 'post' && 
+      item?.id?.startsWith('t3_') && 
+      item?.title && 
+      item?.url
+    ).map(post => ({
+      redditId: post.parsedId || post.id.replace('t3_', ''),
+      title: post.title?.trim() || '',
+      text: post.body?.trim() || '',
+      url: post.url,
+      subreddit: post.parsedCommunityName || post.communityName?.replace('r/', ''),
+      author: post.username || 'Anonymous',
+      createdAt: new Date(post.createdAt),
+      productId: '',
+      engagement: 'unseen',
+      fit: 0,
+      authenticity: 0,
+      lead: 0,
+      isFavorited: false,
+      isReplied: false
+    })) as CreateRedditPost[];
+
+    console.log(`Found ${posts?.length} valid posts for r/${subreddit}`);
+    return posts || [];
+  } catch (error) {
+    console.error(`Error in getRedditPosts for ${subreddit}:`, error);
+    return [];
+  }
+}
+
 export const POST = withMiddleware(async (req: NextRequest) => {
   try {
     let { subreddits, postsPerSubreddit, productId } = await req.json();
     
-    // Enforce minimum of 10 posts total
-    if (postsPerSubreddit * subreddits.length < 10) {
-      postsPerSubreddit = Math.ceil(10 / subreddits.length);
+    // Get posts from each subreddit
+    const allPosts = await Promise.all(
+      subreddits.map(subreddit => getRedditPosts(subreddit, Math.max(MIN_POSTS_PER_SUBREDDIT, postsPerSubreddit)))
+    );
+
+    // Flatten and validate posts
+    const validPosts = allPosts.flat().filter(Boolean);
+    
+    if (validPosts.length === 0) {
+      throw new Error(`No valid posts found from subreddits: ${subreddits.join(', ')}`);
     }
 
-    console.log('Starting monitoring job:', { subreddits, postsPerSubreddit, productId });
-
+    // Score posts based on product keywords
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { keywords: true }
     });
 
-    // Run scraping jobs for each subreddit
-    const allPosts = [];
-    for (const subreddit of subreddits) {
-      const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
-        startUrls: [{
-          url: `https://www.reddit.com/r/${subreddit.toLowerCase()}/`,
-          method: "GET"
-        }],
-        maxItems: postsPerSubreddit + 5, // Request extra to ensure we get enough
-        maxPostCount: postsPerSubreddit + 5,
-        proxy: {
-          useApifyProxy: true
-        }
-      });
-
-      // Wait for and collect posts
-      const dataset = await apifyClient.dataset(run.defaultDatasetId).listItems();
-      if (dataset?.items?.length) {
-        allPosts.push(...dataset.items);
-      }
-    }
-
-    // Score and categorize posts
-    const scoredPosts = allPosts.map(post => {
-      if (!post?.title) return null;
-      
-      const postText = `${post.title} ${post.selftext || ''}`.toLowerCase();
+    const scoredPosts = validPosts.map(post => {
+      const postText = `${post.title} ${post.text}`.toLowerCase();
       const matchedKeywords = product.keywords.filter(keyword => 
         postText.includes(keyword.toLowerCase())
       );
 
       return {
         ...post,
-        relevanceScore: matchedKeywords.length,
-        matchedKeywords
-      };
-    }).filter(Boolean);
-
-    // Sort by relevance score
-    scoredPosts.sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    // Mark top 30% as HOT leads
-    const hotLeadCount = Math.max(Math.ceil(scoredPosts.length * 0.3), 3); // At least 3 HOT leads
-    
-    // Transform posts for saving
-    console.log("Raw post data:", scoredPosts[0]); // Log first post to see structure
-    const postsToSave: CreateRedditPost[] = scoredPosts.map((post, index) => {
-      const mappedPost = {
-        redditId: post.id,
-        title: post.title || "",
-        text: post.selftext || "",
-        url: post.url || `https://reddit.com${post.permalink}`,
-        subreddit: post.subreddit || "",
-        author: post.author || "",
-        createdAt: new Date(post.created_utc * 1000),
         productId,
-        engagement: index < hotLeadCount ? 'HOT' : 'Engagement',
-        fit: index < hotLeadCount ? 80 : 40,
-        authenticity: index < hotLeadCount ? 75 : 50,
-        lead: index < hotLeadCount ? 90 : 30,
+        engagement: matchedKeywords.length > 0 ? 'HOT' : 'unseen',
+        fit: matchedKeywords.length > 0 ? 80 : 40,
+        authenticity: post.upVotes > 10 ? 75 : 50,
+        lead: matchedKeywords.length > 0 ? 90 : 30,
         isFavorited: false,
         isReplied: false
       };
-      
-      console.log("Mapped post:", mappedPost); // Log the transformed data
-      return mappedPost;
     });
 
-    // Save posts
-    const savedPosts = await Promise.all(
-      postsToSave.map(post => 
-        prisma.redditPost.upsert({
-          where: { redditId: post.redditId },
-          update: {
-            title: post.title,
-            text: post.text,
-            url: post.url,
-            engagement: post.engagement,
-            fit: post.fit,
-            authenticity: post.authenticity,
-            lead: post.lead
-          },
-          create: post
-        }).catch(error => {
-          console.error(`Failed to save post ${post.redditId}:`, error);
-          return null;
-        })
-      )
-    );
+    // Sort by relevance and limit to requested number
+    scoredPosts.sort((a, b) => b.lead - a.lead);
+    const postsToSave = scoredPosts.slice(0, postsPerSubreddit * subreddits.length);
 
-    const successfulSaves = savedPosts.filter(Boolean);
-    const resultsBySubreddit = successfulSaves.reduce((acc: any, post: any) => {
-      acc[post.subreddit] = {
-        total: (acc[post.subreddit]?.total || 0) + 1,
-        hot: (acc[post.subreddit]?.hot || 0) + (post.engagement === 'HOT' ? 1 : 0)
-      };
-      return acc;
-    }, {});
-
-    console.log('Save results:', {
-      total: postsToSave.length,
-      saved: successfulSaves.length,
-      bySubreddit: resultsBySubreddit
+    // Save to database
+    const savedPosts = await prisma.redditPost.createMany({
+      data: postsToSave,
+      skipDuplicates: true
     });
 
     return NextResponse.json({ 
-      success: true,
-      postsFound: postsToSave.length,
-      savedCount: successfulSaves.length,
-      postsBySubreddit: resultsBySubreddit
+      success: true, 
+      postsFound: validPosts.length,
+      savedCount: savedPosts.count,
+      bySubreddit: Object.fromEntries(
+        subreddits.map(subreddit => [
+          subreddit,
+          postsToSave.filter(p => p.subreddit.toLowerCase() === subreddit.toLowerCase()).length
+        ])
+      )
     });
 
   } catch (error: any) {
-    console.error("Monitoring error:", error);
-    return new NextResponse(
-      JSON.stringify({ error: error.message }), 
+    console.error('Monitoring error:', error);
+    return NextResponse.json(
+      { error: error.message }, 
       { status: 500 }
     );
   }

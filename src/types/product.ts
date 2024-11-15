@@ -57,7 +57,7 @@ export interface RedditPost {
   author: string;
   createdAt: Date;
   productId: string;
-  engagement: 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT' | 'Engagement';
+  engagement: 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
   fit: number;
   authenticity: number;
   lead: number;

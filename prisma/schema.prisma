@@ -142,8 +142,8 @@ model SubredditSuggestion {
 model RedditPost {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   redditId      String   @unique
-  title         String
-  text          String
+  title         String   @db.String
+  text          String   @db.String
   url           String
   subreddit     String
   author        String
