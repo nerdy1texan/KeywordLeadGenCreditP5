@@ -5,6 +5,7 @@ import { Star, ExternalLink, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import { useToast } from './ui/use-toast';
+import { CommentBuilder } from './CommentBuilder';
 
 interface PostCardProps {
   post: RedditPost;
@@ -14,6 +15,7 @@ interface PostCardProps {
 export function PostCard({ post, onGenerateReply }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReplied, setIsReplied] = useState(post.isReplied);
+  const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const { toast } = useToast();
 
   const handleGenerateReply = async () => {
@@ -28,6 +30,7 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
       const updatedPost = await response.json();
       // Update the post in the UI with the new reply
       onGenerateReply();
+      setShowCommentBuilder(true); // Show the comment builder after generating
       
       toast({
         title: "Reply Generated",
@@ -142,6 +145,23 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
             </p>
           </div>
         </div>
+      )}
+
+      {showCommentBuilder && (
+        <CommentBuilder
+          initialComment={post.latestReply || ''}
+          postContext={{
+            title: post.title,
+            content: post.text,
+            subreddit: post.subreddit
+          }}
+          onSave={(updatedComment) => {
+            // Handle saving the updated comment
+            // You might want to add an API endpoint for this
+            setShowCommentBuilder(false);
+          }}
+          onClose={() => setShowCommentBuilder(false)}
+        />
       )}
 
       {/* Actions */}
