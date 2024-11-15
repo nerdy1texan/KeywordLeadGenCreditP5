@@ -40,30 +40,24 @@ export async function POST(
       messages: [
         {
           role: "system",
-          content: `You are an expert at engaging with Reddit users and subtle product promotion. Your goal is to:
-          1. Provide genuine value and show understanding of the user's post
-          2. Build trust through authenticity and expertise
-          3. Naturally transition to a relevant product recommendation
-          4. Never be overly promotional or sales-focused
-          
-          Product Context:
-          - Name: ${post.product.name}
-          - Description: ${post.product.description}
-          - Keywords: ${post.product.keywords.join(', ')}`
+          content: `You are an expert at engaging with Reddit users and subtle product promotion. Your goal is to write natural, conversational responses that:
+            - Show genuine understanding and empathy
+            - Provide valuable advice and insights
+            - Share relevant experiences
+            - Naturally mention our product (${post.product.name}) where relevant
+            - End with an engaging question
+
+            Product Context:
+            Name: ${post.product.name}
+            Description: ${post.product.description}
+            Keywords: ${post.product.keywords.join(', ')}`
         },
         {
           role: "user",
-          content: `Generate a helpful Reddit reply for this post that naturally promotes our product:
-          Subreddit: ${post.subreddit}
-          Title: ${post.title}
-          Content: ${post.text}
-          
-          Reply Format:
-          1. Start with empathy/understanding
-          2. Provide immediate value/advice
-          3. Share relevant experience
-          4. Naturally mention our product as a solution (${post.product.name}) without being too promotional
-          5. End with an engaging question that encourages further discussion`
+          content: `Write a natural, conversational Reddit reply for this post that helps the user while subtly mentioning our product:
+            Subreddit: ${post.subreddit}
+            Title: ${post.title}
+            Content: ${post.text}`
         }
       ]
     });
