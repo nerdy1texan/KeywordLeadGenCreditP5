@@ -16,6 +16,8 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from ".
 import { MonitoringDialog } from "./MonitoringDialog";
 import { type RedditPost } from '@prisma/client';
 import { PostCard } from './PostCard';
+import { PostFilters } from '@/components/PostFilters';
+import Masonry from 'react-masonry-css';
 
 interface MainDashboardProps {
   productId: string;
@@ -27,50 +29,34 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
-  const [generatedReply, setGeneratedReply] = useState('');
   const [filters, setFilters] = useState({
     timeRange: 'all',
     subreddits: [] as string[],
-    onlyUnseen: false,
-    onlyFavorited: false,
-  });
-  const [stats, setStats] = useState({
-    estimatedValue: 0,
-    hotLeads: 0,
-    meaningful: 0,
-    unseen: 0,
-  });
-  const [isScrapingJob, setIsScrapingJob] = useState(false);
-  const [scrapingConfig, setScrapingConfig] = useState({
-    postsPerSubreddit: 10,
-    timeRange: 'week' as 'day' | 'week' | 'month' | 'all'
   });
   const [showMonitoringDialog, setShowMonitoringDialog] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [sortBy, setSortBy] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [engagement, setEngagement] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchPosts = async () => {
-    if (!productId) return;
-    
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        sortBy,
-        sortOrder,
-        ...(engagement ? { engagement } : {})
+        timeRange: filters.timeRange,
+        ...(filters.subreddits.length === 1 && { subreddit: filters.subreddits[0] })
       });
       
       const response = await fetch(`/api/products/${productId}/posts?${params}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch posts');
-      }
+      if (!response.ok) throw new Error('Failed to fetch posts');
+      
       const data = await response.json();
       setPosts(data);
-      updateStats(data);
     } catch (error) {
-      console.error('Failed to fetch posts:', error);
+      console.error('Error fetching posts:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch posts. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -80,7 +66,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     if (productId) {
       fetchPosts();
     }
-  }, [productId, sortBy, sortOrder, engagement, filters]);
+  }, [productId, filters]);
 
   const fetchMonitoredSubreddits = async () => {
     try {
@@ -129,46 +115,10 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     fetchProduct();
   }, []);
 
-  const updateStats = (posts: RedditPost[]) => {
-    setStats({
-      estimatedValue: calculateEstimatedValue(posts),
-      hotLeads: posts.filter(p => p.lead >= 8).length,
-      meaningful: posts.filter(p => p.engagement === 'meaningful').length,
-      unseen: posts.filter(p => p.engagement === 'unseen').length,
-    });
-  };
-
-  const startMonitoring = async (config: MonitoringConfig) => {
-    try {
-      setIsScrapingJob(true);
-      
-      const response = await fetch('/api/reddit/monitor', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(config),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to start monitoring job');
-      }
-
-      const data = await response.json();
-      console.log('Monitoring job started:', data);
-      
-      // Refresh posts after monitoring
-      await fetchPosts();
-    } catch (error) {
-      console.error('Failed to start monitoring:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start monitoring. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsScrapingJob(false);
-    }
+  const breakpointColumnsObj = {
+    default: 3,
+    1100: 2,
+    700: 1
   };
 
   return (
@@ -287,10 +237,10 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             </div>
           </div>
 
-          {/* Post Filtering Tabs */}
+          {/* Post Filtering */}
           <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg p-4 rounded-lg border border-gray-800/50">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant={filters.subreddits.length === monitoredSubreddits.length ? 'default' : 'outline'}
                   onClick={() => setFilters(prev => ({
@@ -314,40 +264,41 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 ))}
               </div>
               
-              <div className="flex items-center gap-4">
-                <Select
-                  value={filters.timeRange}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Time Range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Time</SelectItem>
-                    <SelectItem value="day">Past Day</SelectItem>
-                    <SelectItem value="week">Past Week</SelectItem>
-                    <SelectItem value="month">Past Month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select
+                value={filters.timeRange}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="day">Past Day</SelectItem>
+                  <SelectItem value="week">Past Week</SelectItem>
+                  <SelectItem value="month">Past Month</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          {/* Posts Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            {loading ? (
-              // Loading skeleton
-              Array(6).fill(0).map((_, i) => (
+          {/* Posts Masonry Grid */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array(6).fill(0).map((_, i) => (
                 <div key={i} className="h-[300px] rounded-xl bg-gray-800/50 animate-pulse" />
-              ))
-            ) : posts.length === 0 ? (
-              // Empty state
-              <div className="col-span-full text-center py-12">
-                <p className="text-gray-400">No posts found. Try adjusting your filters or start monitoring.</p>
-              </div>
-            ) : (
-              // Posts grid
-              posts.map((post) => (
+              ))}
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400">No posts found. Try adjusting your filters or start monitoring.</p>
+            </div>
+          ) : (
+            <Masonry
+              breakpointCols={breakpointColumnsObj}
+              className="flex -ml-6 w-auto"
+              columnClassName="pl-6 bg-clip-padding"
+            >
+              {posts.map((post) => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -356,9 +307,9 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                     setShowCommentBuilder(true);
                   }}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </Masonry>
+          )}
 
           {/* Comment Builder Dialog */}
           {selectedPost && (
@@ -369,16 +320,10 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 setSelectedPost(null);
               }}
               post={selectedPost}
-              onReplyGenerated={setGeneratedReply}
             />
           )}
         </>
       )}
     </div>
   );
-}
-
-function calculateEstimatedValue(posts: RedditPost[]): number {
-  // Implement your value calculation logic here
-  return posts.reduce((total, post) => total + (post.lead * 10), 0);
 }

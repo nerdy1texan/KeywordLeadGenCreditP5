@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { subDays, subMonths, subYears } from "date-fns";
 
 export async function GET(
   req: NextRequest,
@@ -8,22 +9,33 @@ export async function GET(
   try {
     const { productId } = params;
     const searchParams = req.nextUrl.searchParams;
-    const sortBy = searchParams.get('sortBy') || 'createdAt';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const subreddit = searchParams.get('subreddit');
+    const timeRange = searchParams.get('timeRange') || 'all';
     
-    if (!productId) {
-      return NextResponse.json(
-        { error: 'Product ID is required' },
-        { status: 400 }
-      );
+    let dateFilter = {};
+    switch (timeRange) {
+      case 'day':
+        dateFilter = { gte: subDays(new Date(), 1) };
+        break;
+      case 'week':
+        dateFilter = { gte: subDays(new Date(), 7) };
+        break;
+      case 'month':
+        dateFilter = { gte: subMonths(new Date(), 1) };
+        break;
+      case 'year':
+        dateFilter = { gte: subYears(new Date(), 1) };
+        break;
     }
 
     const posts = await prisma.redditPost.findMany({
       where: {
-        productId: productId
+        productId,
+        ...(subreddit && subreddit !== 'all' ? { subreddit } : {}),
+        ...(timeRange !== 'all' ? { createdAt: dateFilter } : {})
       },
       orderBy: {
-        [sortBy]: sortOrder
+        createdAt: 'desc'
       }
     });
 

@@ -1,5 +1,4 @@
 // src/app/(main)/dashboard/page.tsx
-
 import MainDashboard from "@/components/MainDashboard";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "next-auth/next";
