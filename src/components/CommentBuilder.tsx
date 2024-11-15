@@ -86,7 +86,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
       {
         id: 'system',
         role: 'system',
-        content: `You are an expert at improving Reddit replies while maintaining product promotion.
+        content: `You are an expert at improving Reddit replies while maintaining subtle product promotion.
         
         Product Context:
         Name: ${post.product.name}
@@ -106,15 +106,19 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         2. Maintain authenticity and helpfulness
         3. Ensure the reply adds value first
         4. Keep the product promotion subtle
-        5. Include the product URL exactly once near the end of the reply
-        6. Do not repeat or duplicate the URL
-        7. Preserve engaging elements`
+        5. Include the product URL ONLY ONCE, preferably near the end
+        6. NEVER repeat URLs or product mentions
+        7. Format URLs as: "Check it out: [URL]" or similar
+        8. Remove any duplicate URLs from the response
+        9. If multiple URLs exist, keep only the last one`
       }
     ],
     onFinish: async (message) => {
-      setCurrentReply(message.content);
+      // Clean up any duplicate URLs before saving
+      const cleanedContent = message.content.replace(/(?:https?:\/\/[^\s]+)(?:.*)(https?:\/\/[^\s]+)/g, '$1');
+      setCurrentReply(cleanedContent);
       setIsImproving(false);
-      await saveReply(message.content);
+      await saveReply(cleanedContent);
     },
   });
 
@@ -130,19 +134,22 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
-      <DialogContent className="sm:max-w-[800px] bg-gray-950/80 backdrop-blur-sm border border-gray-800/50">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[800px] bg-gray-950/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transform-gpu">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50 rounded-lg animate-gradient-slow" />
+        
+        <DialogHeader className="relative z-10">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-xl font-semibold text-white">
+            <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
               AI Comment Assistant
             </DialogTitle>
           </div>
         </DialogHeader>
         
-        <div className="p-6 flex flex-col gap-4">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-lg" />
-            <div className="relative bg-gray-900 p-4 rounded-lg border border-gray-800/50">
+        <div className="p-6 flex flex-col gap-6 relative z-10">
+          {/* Current Reply Section */}
+          <div className="relative transform-gpu transition-all duration-300 hover:scale-[1.01]">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-xl blur-sm" />
+            <div className="relative bg-gray-900/80 p-5 rounded-xl border border-gray-800/50 backdrop-blur-xl">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="text-sm font-medium text-gray-400">Current Reply</h4>
                 <div className="flex items-center gap-2">
@@ -196,36 +203,42 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             </div>
           </div>
 
-          {/* Only show improvement options when not editing */}
+          {/* Improvement Options */}
           {!isEditing && (
             <>
-              {/* Improvement Options */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {Object.entries(improvementPrompts).map(([label, prompt]) => (
                   <Button
                     key={label}
                     variant="outline"
                     disabled={isImproving}
                     onClick={() => handleInputChange({ target: { value: prompt } } as any)}
+                    className="relative group overflow-hidden bg-gray-900/50 border border-gray-800/50 hover:border-purple-500/50 transition-all duration-300"
                   >
-                    {label}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute inset-px bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-sm blur" />
+                    </div>
+                    <span className="relative z-10 font-medium text-blue-400 group-hover:text-purple-300 transition-colors duration-300">
+                      {label}
+                    </span>
                   </Button>
                 ))}
               </div>
 
               {/* Custom Improvement Input */}
-              <form onSubmit={handleImprove} className="flex gap-2">
+              <form onSubmit={handleImprove} className="flex gap-3">
                 <Textarea
                   value={input}
                   onChange={handleInputChange}
                   placeholder="Type custom instructions for improving the reply..."
-                  className="flex-1"
+                  className="flex-1 bg-gray-900/50 border border-gray-800/50 backdrop-blur-sm transition-all duration-300 focus:border-purple-500/50 focus:ring-purple-500/20"
                   disabled={isImproving}
                 />
                 <Button 
                   type="submit"
                   disabled={isImproving}
-                  className="self-end"
+                  className="self-end bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
                 >
                   {isImproving ? 'Improving...' : 'Improve'}
                 </Button>
@@ -234,14 +247,18 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
           )}
 
           {/* Footer buttons */}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={handleClose}>
+          <div className="flex justify-end gap-3 mt-2">
+            <Button 
+              variant="outline" 
+              onClick={handleClose}
+              className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
+            >
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
             <Button 
               onClick={handleSave}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
             >
               <Save className="h-4 w-4 mr-2" />
               Save Reply
