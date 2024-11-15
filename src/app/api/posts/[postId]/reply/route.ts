@@ -13,9 +13,18 @@ export async function POST(
   try {
     const { postId } = params;
 
-    // Fetch the post
+    // Fetch the post with product information
     const post = await prisma.redditPost.findUnique({
-      where: { id: postId }
+      where: { id: postId },
+      include: {
+        product: {
+          select: {
+            name: true,
+            description: true,
+            keywords: true
+          }
+        }
+      }
     });
 
     if (!post) {
@@ -31,14 +40,30 @@ export async function POST(
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant generating a Reddit comment reply. Be concise, helpful, and authentic."
+          content: `You are an expert at engaging with Reddit users and subtle product promotion. Your goal is to:
+          1. Provide genuine value and show understanding of the user's post
+          2. Build trust through authenticity and expertise
+          3. Naturally transition to a relevant product recommendation
+          4. Never be overly promotional or sales-focused
+          
+          Product Context:
+          - Name: ${post.product.name}
+          - Description: ${post.product.description}
+          - Keywords: ${post.product.keywords.join(', ')}`
         },
         {
           role: "user",
-          content: `Please generate a helpful reply for this Reddit post:
-            Subreddit: ${post.subreddit}
-            Title: ${post.title}
-            Content: ${post.text}`
+          content: `Generate a helpful Reddit reply for this post that naturally promotes our product:
+          Subreddit: ${post.subreddit}
+          Title: ${post.title}
+          Content: ${post.text}
+          
+          Reply Format:
+          1. Start with empathy/understanding
+          2. Provide immediate value/advice
+          3. Share relevant experience
+          4. Naturally mention our product as a solution (${post.product.name}) without being too promotional
+          5. End with an engaging question that encourages further discussion`
         }
       ]
     });

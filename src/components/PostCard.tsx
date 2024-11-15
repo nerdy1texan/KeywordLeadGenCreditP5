@@ -174,14 +174,14 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
 
       {showCommentBuilder && (
         <CommentBuilder
-          initialComment={post.latestReply || ''}
-          postContext={{
-            title: post.title,
-            content: post.text,
-            subreddit: post.subreddit
+          isOpen={showCommentBuilder}
+          onClose={() => {
+            setShowCommentBuilder(false);
           }}
-          onSave={handleSaveReply}
-          onClose={() => setShowCommentBuilder(false)}
+          post={{
+            ...post,
+            product: post.product
+          }}
         />
       )}
 
