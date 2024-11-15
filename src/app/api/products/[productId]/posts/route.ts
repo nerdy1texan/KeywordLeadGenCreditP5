@@ -31,7 +31,12 @@ export async function GET(
     const posts = await prisma.redditPost.findMany({
       where: {
         productId,
-        ...(subreddit && subreddit !== 'all' ? { subreddit } : {}),
+        ...(subreddit && subreddit !== 'all' ? { 
+          subreddit: {
+            equals: subreddit,
+            mode: 'insensitive'
+          }
+        } : {}),
         ...(timeRange !== 'all' ? { createdAt: dateFilter } : {})
       },
       orderBy: {

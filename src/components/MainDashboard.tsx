@@ -31,7 +31,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [filters, setFilters] = useState({
     timeRange: 'all',
-    subreddits: [] as string[],
+    subreddit: 'all'
   });
   const [showMonitoringDialog, setShowMonitoringDialog] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
@@ -42,7 +42,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       setLoading(true);
       const params = new URLSearchParams({
         timeRange: filters.timeRange,
-        ...(filters.subreddits.length === 1 && { subreddit: filters.subreddits[0] })
+        ...(filters.subreddit !== 'all' && { subreddit: filters.subreddit })
       });
       
       const response = await fetch(`/api/products/${productId}/posts?${params}`);
@@ -84,7 +84,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       if (data.length > 0) {
         setFilters(prev => ({
           ...prev,
-          subreddits: data.map((sub: SubredditSuggestion) => sub.name)
+          subreddit: data[0].name
         }));
       }
     } catch (error) {
@@ -119,6 +119,14 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     default: 3,
     1100: 2,
     700: 1
+  };
+
+  const handleSubredditChange = (subreddit: string) => {
+    setFilters(prev => ({ ...prev, subreddit }));
+  };
+
+  const handleTimeRangeChange = (timeRange: string) => {
+    setFilters(prev => ({ ...prev, timeRange }));
   };
 
   return (
@@ -171,7 +179,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                   transition={{ delay: index * 0.1 }}
                   onClick={() => setFilters(prev => ({
                     ...prev,
-                    subreddits: [subreddit.name]
+                    subreddit: subreddit.name
                   }))}
                   className="cursor-pointer"
                 >
@@ -212,7 +220,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                             e.stopPropagation();
                             setFilters(prev => ({
                               ...prev,
-                              subreddits: [subreddit.name]
+                              subreddit: subreddit.name
                             }));
                           }}
                         >
@@ -242,32 +250,25 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex gap-2 flex-wrap">
                 <Button
-                  variant={filters.subreddits.length === monitoredSubreddits.length ? 'default' : 'outline'}
-                  onClick={() => setFilters(prev => ({
-                    ...prev,
-                    subreddits: monitoredSubreddits.map(s => s.name)
-                  }))}
+                  variant={filters.subreddit === 'all' ? 'default' : 'outline'}
+                  onClick={() => handleSubredditChange('all')}
+                  className="whitespace-nowrap"
                 >
                   All Communities
                 </Button>
                 {monitoredSubreddits.map(sub => (
                   <Button
-                    key={sub.id}
-                    variant={filters.subreddits.includes(sub.name) ? 'default' : 'outline'}
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      subreddits: [sub.name]
-                    }))}
+                    key={sub.name}
+                    variant={filters.subreddit === sub.name ? 'default' : 'outline'}
+                    onClick={() => handleSubredditChange(sub.name)}
+                    className="whitespace-nowrap"
                   >
                     r/{sub.name}
                   </Button>
                 ))}
               </div>
               
-              <Select
-                value={filters.timeRange}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, timeRange: value }))}
-              >
+              <Select value={filters.timeRange} onValueChange={handleTimeRangeChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Time Range" />
                 </SelectTrigger>
