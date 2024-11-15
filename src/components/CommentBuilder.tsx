@@ -38,6 +38,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         description: "Reply saved successfully",
       });
 
+      post.latestReply = replyText;
       return true;
     } catch (error) {
       console.error('Error saving reply:', error);
@@ -51,23 +52,23 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   };
 
   const handleClose = async () => {
-    const saved = await saveReply(currentReply);
-    if (saved) {
-      onClose();
-    }
+    onClose();
   };
 
   const handleSave = async () => {
     const saved = await saveReply(currentReply);
     if (saved) {
-      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Reply saved and ready to use",
+      });
+      onClose();
     }
   };
 
-  // Add dialog close handler
   const handleDialogClose = async (open: boolean) => {
     if (!open) {
-      await handleClose();
+      handleClose();
     }
   };
 
@@ -238,7 +239,10 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button onClick={handleSave}>
+            <Button 
+              onClick={handleSave}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            >
               <Save className="h-4 w-4 mr-2" />
               Save Reply
             </Button>

@@ -202,6 +202,14 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
         >
           {isGenerating ? 'Generating...' : 'Generate Reply'}
         </Button>
+        {post.latestReply && (
+          <Button
+            onClick={() => setShowCommentBuilder(true)}
+            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+          >
+            AI Comment Assistant
+          </Button>
+        )}
         <Button 
           variant="outline"
           onClick={() => window.open(post.url, '_blank')}
