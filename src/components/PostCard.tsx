@@ -28,9 +28,8 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
       if (!response.ok) throw new Error('Failed to generate reply');
 
       const updatedPost = await response.json();
-      // Update the post in the UI with the new reply
+      setShowCommentBuilder(true);
       onGenerateReply();
-      setShowCommentBuilder(true); // Show the comment builder after generating
       
       toast({
         title: "Reply Generated",
@@ -44,6 +43,32 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSaveReply = async (comment: string) => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save reply');
+
+      onGenerateReply(); // Refresh the post data
+      toast({
+        title: "Reply Saved",
+        description: "Your reply has been saved successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save reply. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -155,11 +180,7 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
             content: post.text,
             subreddit: post.subreddit
           }}
-          onSave={(updatedComment) => {
-            // Handle saving the updated comment
-            // You might want to add an API endpoint for this
-            setShowCommentBuilder(false);
-          }}
+          onSave={handleSaveReply}
           onClose={() => setShowCommentBuilder(false)}
         />
       )}
