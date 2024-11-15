@@ -63,6 +63,7 @@ export interface RedditPost {
   lead: number;
   isFavorited: boolean;
   isReplied: boolean;
+  latestReply?: string;
 }
 
 // If you need a type for creating a new post

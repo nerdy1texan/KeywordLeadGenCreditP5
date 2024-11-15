@@ -156,6 +156,7 @@ model RedditPost {
   lead          Int      @default(0)
   isFavorited   Boolean  @default(false)
   isReplied     Boolean  @default(false)
+  latestReply   String?  @db.String
 
   @@index([productId])
 }
