@@ -13,17 +13,11 @@ export async function POST(
   try {
     const { postId } = params;
 
-    // Fetch the post with product information
+    // Fetch the post with complete product information
     const post = await prisma.redditPost.findUnique({
       where: { id: postId },
       include: {
-        product: {
-          select: {
-            name: true,
-            description: true,
-            keywords: true
-          }
-        }
+        product: true // Get all product fields
       }
     });
 
@@ -34,30 +28,54 @@ export async function POST(
       );
     }
 
+    // Default URL handling
+    const productUrl = post.product.url || '#';
+    const productContext = `Product Name: ${post.product.name}
+Description: ${post.product.description}
+Key Features: ${post.product.keywords.join(', ')}
+Learn More: ${productUrl}`;
+
     // Generate initial reply using OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
+      temperature: 0.7, // Add some creativity
       messages: [
         {
           role: "system",
-          content: `You are an expert at engaging with Reddit users and subtle product promotion. Your goal is to write natural, conversational responses that:
-            - Show genuine understanding and empathy
-            - Provide valuable advice and insights
-            - Share relevant experiences
-            - Naturally mention our product (${post.product.name}) where relevant
-            - End with an engaging question
+          content: `You are an expert Reddit engagement specialist who excels at natural conversation and subtle product promotion.
 
-            Product Context:
-            Name: ${post.product.name}
-            Description: ${post.product.description}
-            Keywords: ${post.product.keywords.join(', ')}`
+Key Guidelines:
+- Write in a conversational, Reddit-appropriate tone
+- Show genuine understanding of the user's situation
+- Share relevant personal experiences or insights
+- Provide actionable advice first
+- Naturally weave in product mention only where relevant
+- Always include the product URL near the end
+- End with an engaging question
+
+Product Context:
+${productContext}
+
+Remember:
+1. Be helpful first, promotional second
+2. Match the subreddit's tone and style
+3. Make the product mention feel natural and relevant
+4. Include URL in a casual way like "Check it out at: ${productUrl}" or "More details: ${productUrl}"
+5. Keep the response authentic and valuable`
         },
         {
           role: "user",
-          content: `Write a natural, conversational Reddit reply for this post that helps the user while subtly mentioning our product:
-            Subreddit: ${post.subreddit}
-            Title: ${post.title}
-            Content: ${post.text}`
+          content: `Generate a helpful Reddit reply for:
+Subreddit: r/${post.subreddit}
+Post Title: ${post.title}
+Post Content: ${post.text}
+
+Requirements:
+1. Address the user's specific situation
+2. Provide valuable advice
+3. Include our product only if relevant
+4. Add the product URL naturally
+5. End with an engaging question`
         }
       ]
     });
@@ -68,16 +86,11 @@ export async function POST(
     const updatedPost = await prisma.redditPost.update({
       where: { id: postId },
       data: {
-        latestReply: generatedReply
+        latestReply: generatedReply,
+        isReplied: false // Set to false since it's just generated, not posted
       },
       include: {
-        product: {
-          select: {
-            name: true,
-            description: true,
-            keywords: true
-          }
-        }
+        product: true // Return full product info
       }
     });
 
@@ -103,6 +116,9 @@ export async function PATCH(
     const updatedPost = await prisma.redditPost.update({
       where: { id: postId },
       data: { isReplied },
+      include: {
+        product: true // Include product info in response
+      }
     });
 
     return NextResponse.json(updatedPost);

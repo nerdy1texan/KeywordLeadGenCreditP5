@@ -109,6 +109,7 @@ model ActivationCode {
 model Product {
   id                  String                @id @default(auto()) @map("_id") @db.ObjectId
   name                String
+  url                 String?
   description         String
   keywords            String[]
   userId              String                @db.ObjectId

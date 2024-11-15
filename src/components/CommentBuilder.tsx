@@ -21,6 +21,63 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   const [isImproving, setIsImproving] = useState(false);
   const { toast } = useToast();
 
+  const saveReply = async (replyText: string) => {
+    try {
+      const response = await fetch(`/api/posts/${post.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment: replyText }),
+      });
+
+      if (!response.ok) throw new Error('Failed to save reply');
+
+      toast({
+        title: "Success",
+        description: "Reply saved successfully",
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error saving reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save reply",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const handleClose = async () => {
+    const saved = await saveReply(currentReply);
+    if (saved) {
+      onClose();
+    }
+  };
+
+  const handleSave = async () => {
+    const saved = await saveReply(currentReply);
+    if (saved) {
+      setIsEditing(false);
+    }
+  };
+
+  // Add dialog close handler
+  const handleDialogClose = async (open: boolean) => {
+    if (!open) {
+      await handleClose();
+    }
+  };
+
+  // Add this function before the useChat setup
+  const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsImproving(true);
+    await handleSubmit(e);
+  };
+
   // Chat completion setup for improvements
   const { messages, handleSubmit, input, handleInputChange } = useChat({
     api: '/api/chat',
@@ -34,6 +91,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         Name: ${post.product.name}
         Description: ${post.product.description}
         Keywords: ${post.product.keywords.join(', ')}
+        URL: ${post.product.url}
         
         Post Context:
         Subreddit: ${post.subreddit}
@@ -47,58 +105,16 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         2. Maintain authenticity and helpfulness
         3. Ensure the reply adds value first
         4. Keep the product promotion subtle
-        5. Preserve engaging elements`
+        5. Always include the product URL near the end of the reply
+        6. Preserve engaging elements`
       }
     ],
-    onFinish: (message) => {
+    onFinish: async (message) => {
       setCurrentReply(message.content);
       setIsImproving(false);
-      // Save the improved reply automatically
-      handleSave(message.content);
+      await saveReply(message.content);
     },
   });
-
-  // Handle save and close
-  const handleSaveAndClose = async () => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/comment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ comment: currentReply }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save reply');
-      
-      toast({
-        title: "Reply Saved",
-        description: "Your reply has been saved successfully!",
-      });
-      
-      onClose();
-    } catch (error) {
-      console.error('Save error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save reply",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle edit toggle
-  const handleEdit = () => {
-    if (isEditing) {
-      // If we're finishing editing, save the changes
-      handleSaveAndClose();
-    }
-    setIsEditing(!isEditing);
-  };
-
-  // Custom submit handler to show loading state
-  const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
-    setIsImproving(true);
-    await handleSubmit(e);
-  };
 
   // Improvement prompts
   const improvementPrompts = {
@@ -111,12 +127,17 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleSaveAndClose}>
+    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogContent className="sm:max-w-[800px] bg-gray-950/80 backdrop-blur-sm border border-gray-800/50">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-white">
-            AI Comment Assistant
-          </DialogTitle>
+          <div className="flex justify-between items-center">
+            <DialogTitle className="text-xl font-semibold text-white">
+              AI Comment Assistant
+            </DialogTitle>
+            <Button variant="ghost" size="sm" onClick={handleClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
         
         <div className="p-6 flex flex-col gap-4">
@@ -126,15 +147,15 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
               <div className="flex justify-between items-start mb-2">
                 <h4 className="text-sm font-medium text-gray-400">Current Reply</h4>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleEdit}
-                  >
-                    {isEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-                  </Button>
-                  {!isEditing && (
+                  {!isEditing ? (
                     <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -149,6 +170,14 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSave}
+                    >
+                      <Save className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </div>
@@ -157,10 +186,11 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                 <Textarea
                   value={currentReply}
                   onChange={(e) => setCurrentReply(e.target.value)}
-                  className="min-h-[150px] w-full bg-gray-900"
+                  className="min-h-[150px] w-full bg-gray-900 whitespace-pre-wrap"
+                  style={{ whiteSpace: 'pre-wrap' }}
                 />
               ) : (
-                <div className="min-h-[150px] w-full bg-gray-900 rounded-md p-4">
+                <div className="min-h-[150px] w-full bg-gray-900 rounded-md p-4 whitespace-pre-wrap">
                   {currentReply}
                 </div>
               )}
@@ -203,6 +233,16 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
               </form>
             </>
           )}
+        </div>
+
+        {/* Add Save Reply button */}
+        <div className="flex justify-end gap-2 mt-4">
+          {isEditing ? (
+            <Button onClick={handleSave}>
+              <Save className="h-4 w-4 mr-2" />
+              Save Reply
+            </Button>
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>
