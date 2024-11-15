@@ -105,6 +105,23 @@ export default {
           },
         },
       },
+      animation: {
+        'gradient-slow': 'gradient 8s linear infinite',
+        // ... your other animations
+      },
+      keyframes: {
+        gradient: {
+          '0%, 100%': {
+            'background-size': '200% 200%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          },
+        },
+        // ... your other keyframes
+      },
     },
   },
   safelist: [
