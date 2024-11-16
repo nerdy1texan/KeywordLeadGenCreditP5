@@ -166,41 +166,38 @@ export default function ProductInfoForm() {
   };
 
   const handleFindSubreddits = async () => {
-    if (!formik.values.description || !productId) return;
-    
-    setIsSearchingSubreddits(true);
     try {
-      const response = await fetch(`/api/products/subreddits?description=${encodeURIComponent(formik.values.description)}&productId=${productId}`);
-      
+      setIsSearchingSubreddits(true);
+      const response = await fetch('/api/reddit/subreddits/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: formik.values.description,
+          keywords: formik.values.keywords
+        })
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to fetch subreddits');
+        throw new Error('Failed to find subreddits');
       }
-      
-      const newSubreddits = await response.json();
-      if (Array.isArray(newSubreddits)) {
-        setSubreddits(newSubreddits);
-      } else {
-        throw new Error('Invalid response format');
-      }
+
+      const data = await response.json();
+      setSubreddits(data);
     } catch (error) {
       console.error('Error finding subreddits:', error);
-      notify({ 
-        message: error instanceof Error ? error.message : 'Failed to find relevant subreddits', 
-        type: 'error' 
-      });
     } finally {
       setIsSearchingSubreddits(false);
     }
   };
 
   useEffect(() => {
-    const loadLatestProduct = async () => {
+    const loadData = async () => {
       try {
         const response = await fetch('/api/products/latest');
         if (response.ok) {
           const product = await response.json();
           if (product) {
-            formik.setValues({
+            void formik.setValues({
               name: product.name,
               url: product.url || '',
               description: product.description,
@@ -209,28 +206,14 @@ export default function ProductInfoForm() {
               productId: product.id
             });
             setProductId(product.id);
-            
-            if (product.monitoredSubreddits?.length > 0) {
-              setSubreddits(product.monitoredSubreddits.map((sub: SubredditSuggestion) => ({
-                id: sub.id,
-                name: sub.name,
-                title: sub.title || sub.name,
-                description: sub.description || '',
-                memberCount: sub.memberCount || 0,
-                url: sub.url,
-                relevanceScore: sub.relevanceScore || 100,
-                matchReason: sub.matchReason || 'Previously monitored',
-                isMonitored: sub.isMonitored || false,
-                productId: product.id
-              })));
-            }
           }
         }
       } catch (error) {
         console.error('Error loading product:', error);
       }
     };
-    void loadLatestProduct();
+
+    void loadData();
   }, []);
 
   useEffect(() => {
@@ -288,30 +271,20 @@ export default function ProductInfoForm() {
         body: JSON.stringify({ 
           isMonitored: !subreddit.isMonitored 
         }),
-        credentials: 'include'
       });
-
-      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to update monitoring status");
+        throw new Error('Failed to update monitoring status');
       }
 
-      // Only update the specific subreddit that changed
+      const updatedSubreddit = await response.json();
       setSubreddits(prev => 
-        prev.map(sub => 
-          sub.id === subreddit.id 
-            ? { ...sub, isMonitored: data.isMonitored }
-            : sub
+        prev.map(s => 
+          s.id === updatedSubreddit.id ? updatedSubreddit : s
         )
       );
-
-    } catch (error: any) {
-      console.error("Error updating monitoring status:", error);
-      notify({
-        message: `Failed to update monitoring status: ${error.message}`,
-        type: "error"
-      });
+    } catch (error) {
+      console.error('Error toggling subreddit:', error);
     }
   };
 

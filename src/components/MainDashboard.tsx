@@ -87,8 +87,10 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        await fetchPosts();
-        await fetchMonitoredSubreddits();
+        await Promise.all([
+          fetchPosts(),
+          fetchMonitoredSubreddits()
+        ]);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -159,8 +161,12 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     setFilters(prev => ({ ...prev, timeRange }));
   };
 
-  const handleRefresh = useCallback(() => {
-    void fetchPosts();
+  const handleRefresh = useCallback(async () => {
+    try {
+      await fetchPosts();
+    } catch (error) {
+      console.error('Error refreshing posts:', error);
+    }
   }, [fetchPosts]);
 
   return (
