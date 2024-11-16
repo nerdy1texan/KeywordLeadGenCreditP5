@@ -27,10 +27,10 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
   const { toast } = useToast();
 
   useEffect(() => {
-    if (post?.latestReply) {
+    if (isOpen && post?.latestReply) {
       setCurrentReply(post.latestReply);
     }
-  }, [post?.latestReply]);
+  }, [isOpen, post?.id]);
 
   const productData = {
     name: post?.product?.name || 'Product',
@@ -110,41 +110,23 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
       const updatedPost = await saveReply(currentReply);
       
       if (updatedPost) {
-        // Update parent component first
-        if (onReplyUpdate) {
-          onReplyUpdate(updatedPost);
-        }
-        
-        // Update local state
-        setCurrentReply(updatedPost.latestReply);
-        
-        // Close immediately after successful save
-        setIsSaving(false);
         onClose();
-        
         toast({
           title: "Success",
-          description: "Reply saved and closed successfully",
-          duration: 3000,
-        });
-      } else {
-        setIsSaving(false);
-        toast({
-          title: "Error",
-          description: "Failed to save reply",
-          variant: "destructive",
+          description: "Reply saved successfully",
           duration: 3000,
         });
       }
     } catch (error) {
       console.error('Error in handleSaveAndClose:', error);
-      setIsSaving(false);
       toast({
         title: "Error",
-        description: "Failed to save reply before closing",
+        description: "Failed to save reply",
         variant: "destructive",
         duration: 3000,
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
