@@ -22,10 +22,9 @@ export async function POST(
 
     const productUrl = post.product.url || '#';
     
-    // Generate initial reply using OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
-      temperature: 0.85, // Increased for more human-like responses
+      temperature: 0.85,
       messages: [
         {
           role: "system",
@@ -65,22 +64,29 @@ Requirements:
       ]
     });
 
-    const generatedReply = completion.choices[0].message.content;
+    // Safely handle the OpenAI response
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Failed to get content from OpenAI response");
+    }
 
     // Update the post with the new reply
     const updatedPost = await prisma.redditPost.update({
       where: { id: params.postId },
       data: { 
-        latestReply: generatedReply,
-        isReplied: false // Reset this as it's a new reply
+        latestReply: content,
+        isReplied: false
       },
-      include: { product: true }, // Make sure to include the product
+      include: { product: true },
     });
 
     return NextResponse.json(updatedPost);
   } catch (error) {
     console.error('Error generating reply:', error);
-    return NextResponse.json({ error: 'Failed to generate reply' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to generate reply' },
+      { status: 500 }
+    );
   }
 }
 

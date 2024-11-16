@@ -9,6 +9,27 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper function to transform Prisma product to our Product type
+function transformPrismaProduct(prismaProduct: any): Product {
+  return {
+    ...prismaProduct,
+    subredditSuggestions: prismaProduct.monitoredSubreddits.map((sub: any) => ({
+      id: sub.id,
+      name: sub.name,
+      title: sub.title,
+      description: sub.description,
+      memberCount: sub.memberCount,
+      url: sub.url,
+      relevanceScore: sub.relevanceScore,
+      matchReason: sub.matchReason || undefined,
+      isMonitored: sub.isMonitored,
+      productId: sub.productId,
+      createdAt: sub.createdAt,
+      updatedAt: sub.updatedAt
+    }))
+  };
+}
+
 export async function createProduct(
   userId: string,
   data: ProductFormData
@@ -49,7 +70,7 @@ export async function createProduct(
     }
 
     // Return complete product with relations
-    return await prisma.product.findUnique({
+    const prismaProduct = await prisma.product.findUnique({
       where: { id: product.id },
       include: {
         plans: true,
@@ -57,6 +78,9 @@ export async function createProduct(
         redditPosts: true,
       },
     });
+
+    if (!prismaProduct) throw new Error("Failed to create product");
+    return transformPrismaProduct(prismaProduct);
   } catch (error) {
     console.error("Error creating product:", error);
     throw error;
@@ -64,14 +88,19 @@ export async function createProduct(
 }
 
 export async function getProductsByUser(userId: string): Promise<Product[]> {
-  return await prisma.product.findMany({
-    where: {
-      userId,
+  const prismaProducts = await prisma.product.findMany({
+    where: { userId },
+    include: {
+      plans: true,
+      monitoredSubreddits: true,
+      redditPosts: true,
     },
     orderBy: {
       createdAt: "desc",
     },
   });
+
+  return prismaProducts.map(transformPrismaProduct);
 }
 
 export async function extractProductInfo(url: string): Promise<ProductFormData> {
@@ -133,10 +162,20 @@ export async function extractProductInfo(url: string): Promise<ProductFormData> 
       temperature: 0.3,
     });
 
-    const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    // Safely handle the OpenAI response
+    const content = completion.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("Failed to get content from OpenAI response");
+    }
+
+    const result = JSON.parse(content);
     
-    // Ensure plans are properly formatted
-    const formattedPlans = result.plans?.map(plan => ({
+    // Ensure plans are properly formatted with explicit typing
+    const formattedPlans = result.plans?.map((plan: {
+      name?: string;
+      price?: number | string;
+      features?: string[];
+    }) => ({
       name: plan.name || '',
       price: typeof plan.price === 'number' ? plan.price : 0,
       features: Array.isArray(plan.features) ? plan.features : []
@@ -147,7 +186,7 @@ export async function extractProductInfo(url: string): Promise<ProductFormData> 
       url,
       description: result.description || '',
       keywords: result.keywords || [],
-      plans: formattedPlans,
+      plans: formattedPlans
     };
   } catch (error: any) {
     console.error("Error in extractProductInfo:", error);
@@ -157,10 +196,8 @@ export async function extractProductInfo(url: string): Promise<ProductFormData> 
 
 export async function getLatestProductByUser(userId: string): Promise<Product | null> {
   try {
-    const product = await prisma.product.findFirst({
-      where: {
-        userId,
-      },
+    const prismaProduct = await prisma.product.findFirst({
+      where: { userId },
       include: {
         plans: true,
         monitoredSubreddits: true,
@@ -171,10 +208,11 @@ export async function getLatestProductByUser(userId: string): Promise<Product | 
       }
     });
 
-    return product; // This can be null if no product exists
+    if (!prismaProduct) return null;
+    return transformPrismaProduct(prismaProduct);
   } catch (error) {
     console.error("Error fetching latest product:", error);
-    return null; // Return null instead of throwing error
+    return null;
   }
 }
 
@@ -194,7 +232,7 @@ export async function upsertProduct(
     }
 
     // Upsert the product
-    const product = await prisma.product.upsert({
+    const prismaProduct = await prisma.product.upsert({
       where: {
         id: productId || 'dummy-id', // If no productId, use dummy that won't match
       },
@@ -234,7 +272,7 @@ export async function upsertProduct(
       },
     });
 
-    return product;
+    return transformPrismaProduct(prismaProduct);
   } catch (error) {
     console.error("Error upserting product:", error);
     throw error;
