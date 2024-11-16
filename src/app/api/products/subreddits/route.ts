@@ -22,13 +22,16 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const GET = (async (req: NextRequest, context: RouteParams) => {
+export const GET = async (req: NextRequest) => {
   try {
     const description = req.nextUrl.searchParams.get("description");
-    const productId = context.params.productId || req.nextUrl.searchParams.get("productId");
+    const productId = req.nextUrl.searchParams.get("productId");
     
     if (!description || !productId) {
-      return NextResponse.json({ error: "Description and Product ID are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Description and Product ID are required" }, 
+        { status: 400 }
+      );
     }
 
     // First get existing subreddits
@@ -43,68 +46,38 @@ export const GET = (async (req: NextRequest, context: RouteParams) => {
     const keywords = await extractKeywords(description);
     console.log('Searching with keywords:', keywords);
 
-    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
-      searches: keywords,
-      type: "community",
-      sort: "relevance",
-      maxItems: 200,
-      maxCommunitiesCount: 100,
-      proxy: {
-        useApifyProxy: true,
-        apifyProxyGroups: ["RESIDENTIAL"]
-      },
-      searchCommunities: true,
-      searchPosts: false,
-      time: "all"
-    });
-
-    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    const subreddits = await getSubredditsFromApify(keywords, productId);
     
-    // Filter and format subreddits
-    const subreddits = (items as unknown[])
-      .filter((item): item is ApifySubredditResponse => {
-        if (!isApifySubredditResponse(item)) return false;
-        return (
-          item.dataType === 'community' && 
-          typeof item.numberOfMembers === 'number' &&
-          item.numberOfMembers >= 1000
-        );
-      })
-      .map((item) => {
-        // Clean the subreddit name (remove 'r/' prefix if present)
-        const name = (item.displayName || item.title || '')
-          .replace(/^r\//i, '')
-          .toLowerCase();
-
-        if (existingNames.has(name)) return null;
-
-        return {
-          name,
-          title: item.title,
-          description: item.description || '',
-          memberCount: item.numberOfMembers,
-          url: item.url,
-          relevanceScore: calculateRelevanceScore(item, keywords),
-          matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
-          isMonitored: false,
-          productId
-        } satisfies Omit<SubredditSuggestion, 'id' | 'createdAt' | 'updatedAt'>;
-      })
-      .filter((sub): sub is NonNullable<typeof sub> => sub !== null)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 20);
-
     // Store new subreddits in database
     if (subreddits.length > 0) {
       try {
-        await prisma.$transaction(
-          subreddits.map(subreddit => 
-            prisma.subredditSuggestion.create({
-              data: subreddit
-            })
-          )
+        // Filter out subreddits that already exist
+        const newSubreddits = subreddits.filter(
+          sub => !existingNames.has(sub.name.toLowerCase())
         );
-        console.log(`Successfully processed ${subreddits.length} subreddits`);
+
+        if (newSubreddits.length > 0) {
+          // Create new subreddits one by one
+          const createdSubreddits = await Promise.all(
+            newSubreddits.map(subreddit =>
+              prisma.subredditSuggestion.create({
+                data: {
+                  ...subreddit,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                }
+              }).catch(e => {
+                console.error(`Failed to create subreddit ${subreddit.name}:`, e);
+                return null;
+              })
+            )
+          );
+
+          const successfulCreations = createdSubreddits.filter(Boolean);
+          console.log(`Successfully processed ${successfulCreations.length} new subreddits`);
+        } else {
+          console.log('No new subreddits to add');
+        }
       } catch (error) {
         console.error('Error processing subreddits:', error);
       }
@@ -124,7 +97,7 @@ export const GET = (async (req: NextRequest, context: RouteParams) => {
       { status: 500 }
     );
   }
-}) satisfies RouteHandler;
+};
 
 // Helper function to extract keywords using OpenAI
 async function extractKeywords(description: string): Promise<string[]> {
