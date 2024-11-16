@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 interface MonitoringDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  subreddits: SubredditSuggestion[];
+  monitoredSubreddits: SubredditSuggestion[];
   productId: string;
   onSuccess?: () => void;
 }
@@ -19,7 +19,7 @@ interface MonitoringDialogProps {
 export function MonitoringDialog({ 
   isOpen, 
   onClose, 
-  subreddits,
+  monitoredSubreddits,
   productId,
   onSuccess
 }: MonitoringDialogProps) {
@@ -38,8 +38,8 @@ export function MonitoringDialog({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          subreddits: subreddits.map(s => s.name),
-          postsPerSubreddit: 10,
+          subreddits: selectedSubreddits,
+          postsPerSubreddit,
           productId
         }),
       });
@@ -79,10 +79,10 @@ export function MonitoringDialog({
             <div className="flex items-center gap-2">
               <Checkbox 
                 id="select-all"
-                checked={selectedSubreddits?.length === subreddits?.length}
+                checked={selectedSubreddits?.length === monitoredSubreddits?.length}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setSelectedSubreddits(subreddits?.map(s => s.name) || []);
+                    setSelectedSubreddits(monitoredSubreddits?.map(s => s.name) || []);
                   } else {
                     setSelectedSubreddits([]);
                   }
@@ -92,7 +92,7 @@ export function MonitoringDialog({
             </div>
             
             <div className="grid grid-cols-1 gap-2 pl-6">
-              {subreddits?.map((subreddit) => (
+              {monitoredSubreddits?.map((subreddit) => (
                 <div key={subreddit.id} className="flex items-center gap-2">
                   <Checkbox 
                     id={subreddit.id}

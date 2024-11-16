@@ -81,12 +81,6 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       
       const data = await response.json();
       setMonitoredSubreddits(data);
-      if (data.length > 0) {
-        setFilters(prev => ({
-          ...prev,
-          subreddit: data[0].name
-        }));
-      }
     } catch (error) {
       console.error('Failed to fetch monitored subreddits:', error);
     } finally {
