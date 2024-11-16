@@ -3,10 +3,16 @@ import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-export const GET = withMiddleware(async (req: NextRequest, { params }: { params: { productId: string } }) => {
+// Create a type for the handler that includes context
+type RouteHandler = (
+  req: NextRequest,
+  context: { params: { productId: string } }
+) => Promise<NextResponse>;
+
+// Wrap the handlers with the type
+export const GET: RouteHandler = withMiddleware(async (req: NextRequest) => {
+  const productId = req.nextUrl.pathname.split('/')[3]; // Get productId from URL
   try {
-    const { productId } = params;
-    
     // Debug logging
     console.log("Request received:", {
       productId,
@@ -75,7 +81,7 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
       errorName: error?.constructor?.name,
       errorMessage: error instanceof Error ? error.message : "Unknown error",
       errorStack: error instanceof Error ? error.stack : undefined,
-      productId: params.productId,
+      productId: productId,
       timestamp: new Date().toISOString()
     });
 
@@ -85,7 +91,7 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
         code: error.code,
         message: error.message,
         meta: error.meta,
-        productId: params.productId
+        productId: productId
       });
 
       return NextResponse.json(
@@ -120,9 +126,9 @@ export const GET = withMiddleware(async (req: NextRequest, { params }: { params:
 });
 
 // PATCH endpoint remains the same but with improved error handling
-export const PATCH = withMiddleware(async (req: NextRequest, { params }: { params: { productId: string } }) => {
+export const PATCH: RouteHandler = withMiddleware(async (req: NextRequest) => {
+  const productId = req.nextUrl.pathname.split('/')[3]; // Get productId from URL
   try {
-    const { productId } = params;
     const body = await req.json();
     const { subredditId, isMonitored } = body;
 
@@ -175,7 +181,7 @@ export const PATCH = withMiddleware(async (req: NextRequest, { params }: { param
       console.error("Prisma Error:", {
         code: error.code,
         message: error.message,
-        productId: params.productId
+        productId: productId
       });
 
       return NextResponse.json(
@@ -190,7 +196,7 @@ export const PATCH = withMiddleware(async (req: NextRequest, { params }: { param
 
     console.error("API Error:", {
       message: error instanceof Error ? error.message : "Unknown error",
-      productId: params.productId
+      productId: productId
     });
 
     return NextResponse.json(

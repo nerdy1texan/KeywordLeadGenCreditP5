@@ -48,20 +48,19 @@ export function MonitoringDialog({
 
       const result = await response.json();
       
-      toast({
-        title: "Monitoring Complete",
-        description: `Found ${result.postsFound} posts, saved ${result.savedCount} new posts.`,
-      });
+      toast(
+        `Found ${result.postsFound} posts, saved ${result.savedCount} new posts.`,
+        'success'
+      );
 
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Monitoring error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to monitor subreddits. Please try again.",
-        variant: "destructive",
-      });
+      toast(
+        'Failed to monitor subreddits. Please try again.',
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }

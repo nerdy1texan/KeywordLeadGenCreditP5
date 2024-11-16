@@ -27,8 +27,14 @@ interface MainDashboardProps {
 type Engagement = 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
 
 // Update PostWithProduct to exactly match CommentBuilder's expected type
-type PostWithProduct = RedditPost & { 
-  product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+type PostWithProduct = Omit<RedditPost, 'engagement' | 'product'> & {
+  engagement: 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
+  product: {
+    name: string;
+    description: string;
+    keywords: string[];
+    url: string | undefined;
+  };
 };
 
 export default function MainDashboard({ productId }: MainDashboardProps) {
@@ -60,18 +66,18 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       // Transform the data to match PostWithProduct type
       const postsWithProduct: PostWithProduct[] = data.map((post: RedditPost) => ({
         ...post,
-        engagement: post.engagement as Engagement, // Type assertion here is safe because we know the values
+        engagement: post.engagement as 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT',
         product: {
           name: currentProduct?.name || '',
           description: currentProduct?.description || '',
           keywords: currentProduct?.keywords || [],
-          url: currentProduct?.url || null
+          url: currentProduct?.url || undefined
         }
       }));
       setPosts(postsWithProduct);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      toast("Failed to fetch posts. Please try again.", 'error');
+      toast('Failed to fetch posts. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
