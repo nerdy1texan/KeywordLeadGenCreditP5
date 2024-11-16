@@ -211,7 +211,6 @@ export default function ProductInfoForm() {
             });
             setProductId(product.id);
             
-            // Load saved subreddits if any
             if (product.monitoredSubreddits?.length > 0) {
               setSubreddits(product.monitoredSubreddits.map((sub: SubredditSuggestion) => ({
                 id: sub.id,
@@ -232,7 +231,7 @@ export default function ProductInfoForm() {
         console.error('Error loading product:', error);
       }
     };
-    loadLatestProduct();
+    void loadLatestProduct();
   }, []);
 
   useEffect(() => {
