@@ -46,22 +46,22 @@ Learn More: ${productUrl}`;
 
 Key Guidelines:
 - Write in a conversational, Reddit-appropriate tone
+- Make the response feel naturally hand-typed (include occasional typos or casual language)
 - Show genuine understanding of the user's situation
 - Share relevant personal experiences or insights
 - Provide actionable advice first
 - Naturally weave in product mention only where relevant
-- Always include the product URL near the end
+- Include URL near the end using round parentheses like "Check it out (${productUrl})" or "More info (${productUrl})"
 - End with an engaging question
-
-Product Context:
-${productContext}
+- Add human elements like "tbh", "imo", "..." or casual phrases to make it feel more authentic
 
 Remember:
 1. Be helpful first, promotional second
 2. Match the subreddit's tone and style
 3. Make the product mention feel natural and relevant
-4. Include URL in a casual way like "Check it out at: ${productUrl}" or "More details: ${productUrl}"
-5. Keep the response authentic and valuable`
+4. Include URL casually like "Check it out (${productUrl})" or "More details (${productUrl})"
+5. Keep the response authentic and valuable
+6. Make it feel like a real person typing, not an AI response`
         },
         {
           role: "user",

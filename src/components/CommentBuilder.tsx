@@ -31,25 +31,25 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     url: post?.product?.url || ''
   };
 
-  const saveReply = async (replyText: string) => {
+  // Simplified save and close function
+  const handleSaveAndClose = async () => {
     try {
-      const response = await fetch(`/api/posts/${post.id}/comment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment: replyText }),
-      });
+      if (currentReply) {
+        const response = await fetch(`/api/posts/${post.id}/comment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ comment: currentReply }),
+        });
 
-      if (!response.ok) throw new Error('Failed to save reply');
+        if (!response.ok) throw new Error('Failed to save reply');
 
-      toast({
-        title: "Success",
-        description: "Reply saved successfully",
-      });
-
-      post.latestReply = replyText;
-      return true;
+        toast({
+          title: "Success",
+          description: "Reply saved successfully",
+        });
+      }
     } catch (error) {
       console.error('Error saving reply:', error);
       toast({
@@ -57,28 +57,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         description: "Failed to save reply",
         variant: "destructive"
       });
-      return false;
-    }
-  };
-
-  const handleClose = async () => {
-    onClose();
-  };
-
-  const handleSave = async () => {
-    const saved = await saveReply(currentReply);
-    if (saved) {
-      toast({
-        title: "Success",
-        description: "Reply saved and ready to use",
-      });
+    } finally {
       onClose();
-    }
-  };
-
-  const handleDialogClose = async (open: boolean) => {
-    if (!open) {
-      handleClose();
     }
   };
 
@@ -116,18 +96,24 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         2. Maintain authenticity and helpfulness
         3. Ensure the reply adds value first
         4. Keep the product promotion subtle
-        5. Include the product URL ONLY ONCE, preferably near the end
+        5. Include the product URL ONLY ONCE using round parentheses
         6. NEVER repeat URLs or product mentions
-        7. Format URLs as: "Check it out: [URL]" or similar
+        7. Format URLs as: "Check it out (URL)" or similar
         8. Remove any duplicate URLs from the response
-        9. If multiple URLs exist, keep only the last one`
+        9. Make the reply feel naturally hand-typed:
+           - Add occasional typos (but not too many)
+           - Use casual language and contractions
+           - Include filler words like "tbh", "imo", "..."
+           - Vary sentence structure
+           - Add personal touches or anecdotes
+        10. If multiple URLs exist, keep only the last one`
       }
     ],
     onFinish: async (message) => {
       setIsImproving(false);
       const cleanedContent = message.content.replace(/(?:https?:\/\/[^\s]+)(?:.*)(https?:\/\/[^\s]+)/g, '$1');
       setCurrentReply(cleanedContent);
-      await saveReply(cleanedContent);
+      await handleSaveAndClose();
     },
   });
 
@@ -142,7 +128,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
+    <Dialog open={isOpen} onOpenChange={handleSaveAndClose}>
       <DialogContent className="sm:max-w-[800px] bg-gray-950/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transform-gpu">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50 rounded-lg animate-gradient-slow" />
         
@@ -224,11 +210,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                     onClick={() => handleInputChange({ target: { value: prompt } } as any)}
                     className="relative group overflow-hidden bg-gray-900/50 border border-gray-800/50 hover:border-purple-500/50 transition-all duration-300"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute inset-px bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-sm blur" />
-                    </div>
-                    <span className="relative z-10 font-medium text-blue-400 group-hover:text-purple-300 transition-colors duration-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <span className="relative z-10 font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300">
                       {label}
                     </span>
                   </Button>
@@ -259,18 +242,18 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
           <div className="flex justify-end gap-3 mt-2">
             <Button 
               variant="outline" 
-              onClick={handleClose}
+              onClick={handleSaveAndClose}
               className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
             >
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
             <Button 
-              onClick={handleSave}
+              onClick={handleSaveAndClose}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
             >
               <Save className="h-4 w-4 mr-2" />
-              Save Reply
+              Save & Close
             </Button>
           </div>
         </div>
