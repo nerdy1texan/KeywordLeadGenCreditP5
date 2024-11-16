@@ -160,7 +160,7 @@ export default function ProductInfoForm() {
   };
 
   const handleRemovePlan = (index: number) => {
-    formik.setFieldValue(
+    void formik.setFieldValue(
       "plans",
       formik.values.plans.filter((_, i) => i !== index)
     );
@@ -266,7 +266,7 @@ export default function ProductInfoForm() {
   };
 
   const handleDeletePlan = (planIndex: number) => {
-    formik.setFieldValue(
+    void formik.setFieldValue(
       'plans', 
       formik.values.plans?.filter((_, index) => index !== planIndex)
     );
