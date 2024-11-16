@@ -125,19 +125,24 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
 
   useEffect(() => {
     if (monitoredSubreddits.length > 0) {
-      void fetchPosts().catch(console.error);
+      void fetchPosts();
     }
-  }, [monitoredSubreddits]);
+  }, [monitoredSubreddits, productId, filters]);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const response = await fetch('/api/products/latest');
-      if (response.ok) {
-        const data = await response.json();
-        setCurrentProduct(data);
+      try {
+        const response = await fetch('/api/products/latest');
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentProduct(data);
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
       }
     };
-    fetchProduct();
+
+    void fetchProduct();
   }, []);
 
   const breakpointColumnsObj = {
@@ -155,8 +160,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   };
 
   const handleRefresh = useCallback(() => {
-    void fetchPosts().catch(console.error);
-  }, []);
+    void fetchPosts();
+  }, [fetchPosts]);
 
   return (
     <div className="space-y-6 p-6">
