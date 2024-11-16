@@ -96,7 +96,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
   const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsImproving(true);
-    await handleSubmit(e);
+    handleSubmit(e);
   };
 
   const { messages, handleSubmit, input, handleInputChange } = useChat({

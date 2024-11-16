@@ -249,7 +249,7 @@ export default function ProductInfoForm() {
       }
     };
 
-    loadExistingSubreddits();
+    void loadExistingSubreddits();
   }, [productId]);
 
   const isPlanValid = () => {
