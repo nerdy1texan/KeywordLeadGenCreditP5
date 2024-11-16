@@ -22,10 +22,13 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   const [currentReply, setCurrentReply] = useState(post?.latestReply || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    setCurrentReply(post?.latestReply || '');
+    if (post?.latestReply) {
+      setCurrentReply(post.latestReply);
+    }
   }, [post?.latestReply]);
 
   const productData = {
@@ -37,7 +40,9 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
 
   const saveReply = async (replyText: string) => {
     try {
-      if (!replyText) return;
+      setIsSaving(true);
+      
+      console.log("Saving reply:", replyText); // Debug log
 
       const response = await fetch(`/api/posts/${post.id}/comment`, {
         method: 'POST',
@@ -47,9 +52,14 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         body: JSON.stringify({ comment: replyText }),
       });
 
-      if (!response.ok) throw new Error('Failed to save reply');
+      if (!response.ok) {
+        throw new Error('Failed to save reply');
+      }
 
       const updatedPost = await response.json();
+      console.log("Save response:", updatedPost); // Debug log
+
+      // Update local state
       setCurrentReply(updatedPost.latestReply);
 
       toast({
@@ -68,6 +78,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         duration: 3000,
       });
       return null;
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -77,9 +89,31 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   };
 
   const handleSaveAndClose = async () => {
-    const updatedPost = await saveReply(currentReply);
-    if (updatedPost) {
-      onClose();
+    try {
+      console.log("Handling save and close"); // Debug log
+      
+      if (!currentReply.trim()) {
+        toast({
+          title: "Error",
+          description: "Reply cannot be empty",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      const updatedPost = await saveReply(currentReply);
+      if (updatedPost) {
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error in handleSaveAndClose:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save reply before closing",
+        variant: "destructive",
+        duration: 3000,
+      });
     }
   };
 
@@ -154,8 +188,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     <Dialog 
       open={isOpen} 
       onOpenChange={(open) => {
-        if (!open && !isImproving) {
-          handleCancel();
+        if (!open && !isImproving && !isSaving) {
+          onClose();
         }
       }}
     >
@@ -268,7 +302,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
           <div className="flex justify-end gap-3 mt-2">
             <Button 
               variant="outline" 
-              onClick={handleCancel}
+              onClick={onClose}
+              disabled={isImproving || isSaving}
               className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
             >
               <X className="h-4 w-4 mr-2" />
@@ -276,10 +311,11 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             </Button>
             <Button 
               onClick={handleSaveAndClose}
+              disabled={isImproving || isSaving}
               className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
             >
               <Save className="h-4 w-4 mr-2" />
-              Save & Close
+              {isSaving ? 'Saving...' : 'Save & Close'}
             </Button>
           </div>
         </div>
