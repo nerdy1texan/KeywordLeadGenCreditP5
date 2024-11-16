@@ -24,6 +24,10 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   const [isImproving, setIsImproving] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    setCurrentReply(post?.latestReply || '');
+  }, [post?.latestReply]);
+
   const productData = {
     name: post?.product?.name || 'Product',
     description: post?.product?.description || '',
@@ -31,26 +35,30 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     url: post?.product?.url || ''
   };
 
-  // Separate save and close functions
-  const saveReply = async () => {
+  const saveReply = async (replyText: string) => {
     try {
-      if (currentReply) {
-        const response = await fetch(`/api/posts/${post.id}/comment`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ comment: currentReply }),
-        });
+      if (!replyText) return;
 
-        if (!response.ok) throw new Error('Failed to save reply');
+      const response = await fetch(`/api/posts/${post.id}/comment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment: replyText }),
+      });
 
-        toast({
-          title: "Success",
-          description: "Reply saved successfully",
-          duration: 3000,
-        });
-      }
+      if (!response.ok) throw new Error('Failed to save reply');
+
+      const updatedPost = await response.json();
+      setCurrentReply(updatedPost.latestReply);
+
+      toast({
+        title: "Success",
+        description: "Reply saved successfully",
+        duration: 3000,
+      });
+
+      return updatedPost;
     } catch (error) {
       console.error('Error saving reply:', error);
       toast({
@@ -59,27 +67,28 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         variant: "destructive",
         duration: 3000,
       });
+      return null;
     }
   };
 
-  // Handle different close scenarios
   const handleCancel = () => {
+    setIsImproving(false);
     onClose();
   };
 
   const handleSaveAndClose = async () => {
-    await saveReply();
-    onClose();
+    const updatedPost = await saveReply(currentReply);
+    if (updatedPost) {
+      onClose();
+    }
   };
 
-  // Add this function before the useChat setup
   const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsImproving(true);
     await handleSubmit(e);
   };
 
-  // Chat completion setup for improvements
   const { messages, handleSubmit, input, handleInputChange } = useChat({
     api: '/api/chat',
     initialMessages: [
@@ -120,14 +129,18 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
       }
     ],
     onFinish: async (message) => {
-      setIsImproving(false);
-      const cleanedContent = message.content.replace(/(?:https?:\/\/[^\s]+)(?:.*)(https?:\/\/[^\s]+)/g, '$1');
-      setCurrentReply(cleanedContent);
-      await handleSaveAndClose();
+      try {
+        const cleanedContent = message.content.replace(/(?:https?:\/\/[^\s]+)(?:.*)(https?:\/\/[^\s]+)/g, '$1');
+        const updatedPost = await saveReply(cleanedContent);
+        if (updatedPost) {
+          setCurrentReply(updatedPost.latestReply);
+        }
+      } finally {
+        setIsImproving(false);
+      }
     },
   });
 
-  // Improvement prompts
   const improvementPrompts = {
     'Make it more personal': 'Make the reply more personal and relatable while maintaining the product mention.',
     'Make it more professional': 'Make the reply more professional and authoritative while keeping the product recommendation credible.',
@@ -141,7 +154,9 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     <Dialog 
       open={isOpen} 
       onOpenChange={(open) => {
-        if (!open) handleCancel();
+        if (!open && !isImproving) {
+          handleCancel();
+        }
       }}
     >
       <DialogContent className="sm:max-w-[800px] bg-gray-950/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transform-gpu">
@@ -156,7 +171,6 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         </DialogHeader>
         
         <div className="p-6 flex flex-col gap-6 relative z-10">
-          {/* Current Reply Section */}
           <div className="relative transform-gpu transition-all duration-300 hover:scale-[1.01]">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-xl blur-sm" />
             <div className="relative bg-gray-900/80 p-5 rounded-xl border border-gray-800/50 backdrop-blur-xl">
@@ -213,7 +227,6 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             </div>
           </div>
 
-          {/* Improvement Options */}
           {!isEditing && (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -233,7 +246,6 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                 ))}
               </div>
 
-              {/* Custom Improvement Input */}
               <form onSubmit={handleImprove} className="flex gap-3">
                 <Textarea
                   value={input}
@@ -253,7 +265,6 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
             </>
           )}
 
-          {/* Footer buttons */}
           <div className="flex justify-end gap-3 mt-2">
             <Button 
               variant="outline" 
