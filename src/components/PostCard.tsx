@@ -27,23 +27,28 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
 
   const handleGenerateReply = async () => {
     try {
+      if (isGenerating) return;
       setIsGenerating(true);
+      
       const response = await fetch(`/api/posts/${post.id}/reply`, {
         method: 'POST',
       });
 
-      if (!response.ok) throw new Error('Failed to generate reply');
+      if (!response.ok) {
+        throw new Error('Failed to generate reply');
+      }
 
       const updatedPost = await response.json();
+      
+      // Update post state first
       setPost(prevPost => ({
         ...prevPost,
         latestReply: updatedPost.latestReply,
         product: updatedPost.product
       }));
-      
+
+      // Show CommentBuilder and notify success
       setShowCommentBuilder(true);
-      onGenerateReply();
-      
       toast({
         title: "Reply Generated",
         description: "Your reply has been generated successfully!",
@@ -208,11 +213,12 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
           isOpen={showCommentBuilder}
           onClose={() => {
             setShowCommentBuilder(false);
-            onGenerateReply(); // Refresh the post data after closing
+            onGenerateReply();
           }}
           post={post}
           onReplyUpdate={(updatedPost) => {
             setPost(updatedPost);
+            setShowCommentBuilder(false);
           }}
         />
       )}
@@ -221,7 +227,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       <div className="flex gap-3 mt-6">
         <Button 
           onClick={handleGenerateReply}
-          disabled={isGenerating}
+          disabled={isGenerating || showCommentBuilder}
           className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
         >
           {isGenerating ? 'Generating...' : 'Generate Reply'}
@@ -229,6 +235,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         {post.latestReply && (
           <Button
             onClick={() => setShowCommentBuilder(true)}
+            disabled={showCommentBuilder}
             className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
           >
             AI Reply Assistant

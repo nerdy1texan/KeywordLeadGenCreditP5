@@ -20,17 +20,17 @@ interface CommentBuilderProps {
 }
 
 export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: CommentBuilderProps) {
-  const [currentReply, setCurrentReply] = useState(post?.latestReply || '');
+  const [currentReply, setCurrentReply] = useState(post.latestReply || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && post?.latestReply && !currentReply) {
+    if (post.latestReply) {
       setCurrentReply(post.latestReply);
     }
-  }, [isOpen, post?.id]);
+  }, [post.latestReply]);
 
   const productData = {
     name: post?.product?.name || 'Product',

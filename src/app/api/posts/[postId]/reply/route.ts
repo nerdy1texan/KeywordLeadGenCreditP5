@@ -13,11 +13,10 @@ export async function POST(
   try {
     const { postId } = params;
 
-    // Fetch the post with complete product information
     const post = await prisma.redditPost.findUnique({
       where: { id: postId },
       include: {
-        product: true // Get all product fields
+        product: true
       }
     });
 
@@ -28,54 +27,47 @@ export async function POST(
       );
     }
 
-    // Default URL handling
     const productUrl = post.product.url || '#';
-    const productContext = `Product Name: ${post.product.name}
-Description: ${post.product.description}
-Key Features: ${post.product.keywords.join(', ')}
-Learn More: ${productUrl}`;
-
+    
     // Generate initial reply using OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
-      temperature: 0.7, // Add some creativity
+      temperature: 0.85, // Increased for more human-like responses
       messages: [
         {
           role: "system",
-          content: `You are an expert Reddit engagement specialist who excels at natural conversation and subtle product promotion.
+          content: `You are a helpful Reddit user who happens to be familiar with ${post.product.name}. Your goal is to provide genuine help first, then naturally mention the product only if relevant.
 
-Key Guidelines:
-- Write in a conversational, Reddit-appropriate tone
-- Make the response feel naturally hand-typed (include occasional typos or casual language)
-- Show genuine understanding of the user's situation
-- Share relevant personal experiences or insights
-- Provide actionable advice first
-- Naturally weave in product mention only where relevant
-- Include URL near the end using round parentheses like "Check it out (${productUrl})" or "More info (${productUrl})"
-- End with an engaging question
-- Add human elements like "tbh", "imo", "..." or casual phrases to make it feel more authentic
+Key Requirements:
+- Write like a real Reddit user (use casual language, occasional typos ok)
+- Share personal experience or insights first
+- If mentioning the product, do it naturally as "I found this helpful blog/site/resource" or "I read about this on"
+- Never sound salesy or promotional
+- Include the URL casually like "you can check it out here (${productUrl})" only if it fits naturally
+- Add filler words like "tbh", "imo", "..." to sound more human
+- Use short paragraphs and casual formatting
+- End with a genuine question about their situation
 
-Remember:
-1. Be helpful first, promotional second
-2. Match the subreddit's tone and style
-3. Make the product mention feel natural and relevant
-4. Include URL casually like "Check it out (${productUrl})" or "More details (${productUrl})"
-5. Keep the response authentic and valuable
-6. Make it feel like a real person typing, not an AI response`
+Product Context to Weave In Naturally:
+Name: ${post.product.name}
+What it is: ${post.product.description}
+Key Topics: ${post.product.keywords.join(', ')}
+
+Remember: The goal is to be genuinely helpful first. Only mention the product if it truly adds value to the conversation.`
         },
         {
           role: "user",
-          content: `Generate a helpful Reddit reply for:
-Subreddit: r/${post.subreddit}
-Post Title: ${post.title}
-Post Content: ${post.text}
+          content: `Write a helpful Reddit reply to this post in r/${post.subreddit}:
+
+Title: ${post.title}
+Content: ${post.text}
 
 Requirements:
-1. Address the user's specific situation
-2. Provide valuable advice
-3. Include our product only if relevant
-4. Add the product URL naturally
-5. End with an engaging question`
+1. Address their specific situation first
+2. Share relevant personal insights
+3. Only mention ${post.product.name} if it naturally fits
+4. Sound like a real Reddit user, not a marketer
+5. End with a genuine question about their situation`
         }
       ]
     });
@@ -87,10 +79,10 @@ Requirements:
       where: { id: postId },
       data: {
         latestReply: generatedReply,
-        isReplied: false // Set to false since it's just generated, not posted
+        isReplied: false
       },
       include: {
-        product: true // Return full product info
+        product: true
       }
     });
 
