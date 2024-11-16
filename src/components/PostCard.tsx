@@ -18,11 +18,12 @@ interface PostCardProps {
   onGenerateReply: () => void;
 }
 
-export function PostCard({ post, onGenerateReply }: PostCardProps) {
+export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReplied, setIsReplied] = useState(post.isReplied);
+  const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const { toast } = useToast();
+  const [post, setPost] = useState<RedditPost & { product?: Product }>(initialPost);
 
   const handleGenerateReply = async () => {
     try {
@@ -34,8 +35,11 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
       if (!response.ok) throw new Error('Failed to generate reply');
 
       const updatedPost = await response.json();
-      post.latestReply = updatedPost.latestReply;
-      post.product = updatedPost.product;
+      setPost(prevPost => ({
+        ...prevPost,
+        latestReply: updatedPost.latestReply,
+        product: updatedPost.product
+      }));
       
       setShowCommentBuilder(true);
       onGenerateReply();
@@ -190,6 +194,9 @@ export function PostCard({ post, onGenerateReply }: PostCardProps) {
             onGenerateReply(); // Refresh the post data after closing
           }}
           post={post}
+          onReplyUpdate={(updatedPost) => {
+            setPost(updatedPost);
+          }}
         />
       )}
 

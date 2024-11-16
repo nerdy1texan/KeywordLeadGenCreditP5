@@ -16,9 +16,10 @@ interface CommentBuilderProps {
   post: RedditPost & { 
     product?: Product;
   };
+  onReplyUpdate?: (updatedPost: RedditPost & { product?: Product }) => void;
 }
 
-export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
+export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: CommentBuilderProps) {
   const [currentReply, setCurrentReply] = useState(post?.latestReply || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
@@ -42,7 +43,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     try {
       setIsSaving(true);
       
-      console.log("Saving reply:", replyText); // Debug log
+      console.log("Saving reply:", replyText);
 
       const response = await fetch(`/api/posts/${post.id}/comment`, {
         method: 'POST',
@@ -57,10 +58,15 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
       }
 
       const updatedPost = await response.json();
-      console.log("Save response:", updatedPost); // Debug log
+      console.log("Save response:", updatedPost);
 
       // Update local state
       setCurrentReply(updatedPost.latestReply);
+      
+      // Call the callback to update parent component
+      if (onReplyUpdate) {
+        onReplyUpdate(updatedPost);
+      }
 
       toast({
         title: "Success",
