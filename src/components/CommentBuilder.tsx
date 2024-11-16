@@ -216,13 +216,21 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setIsEditing(true)}
+                        className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
                       >
-                        <Edit className="h-4 w-4" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                        <Edit className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300" 
+                          onClick={() => setIsEditing(true)}
+                          style={{
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          }}
+                        />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
+                        className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
                         onClick={() => {
                           navigator.clipboard.writeText(currentReply);
                           toast({
@@ -231,16 +239,32 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                           });
                         }}
                       >
-                        <Copy className="h-4 w-4" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                        <Copy className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300"
+                          style={{
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                          }}
+                        />
                       </Button>
                     </>
                   ) : (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsEditing(false)}
+                      className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
+                      onClick={async () => {
+                        await saveReply(currentReply);
+                        setIsEditing(false);
+                      }}
                     >
-                      <Check className="h-4 w-4" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                      <Check className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300"
+                        style={{
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        }}
+                      />
                     </Button>
                   )}
                 </div>
@@ -250,7 +274,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                 <Textarea
                   value={currentReply}
                   onChange={(e) => setCurrentReply(e.target.value)}
-                  className="min-h-[150px] w-full bg-gray-900 whitespace-pre-wrap"
+                  className="min-h-[300px] w-full bg-gray-900 whitespace-pre-wrap resize-y"
                   style={{ whiteSpace: 'pre-wrap' }}
                 />
               ) : (
@@ -296,28 +320,28 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                   {isImproving ? 'Improving...' : 'Improve'}
                 </Button>
               </form>
+
+              <div className="flex justify-end gap-3 mt-2">
+                <Button 
+                  variant="outline" 
+                  onClick={onClose}
+                  disabled={isImproving || isSaving}
+                  className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSaveAndClose}
+                  disabled={isImproving || isSaving}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {isSaving ? 'Saving...' : 'Save & Close'}
+                </Button>
+              </div>
             </>
           )}
-
-          <div className="flex justify-end gap-3 mt-2">
-            <Button 
-              variant="outline" 
-              onClick={onClose}
-              disabled={isImproving || isSaving}
-              className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveAndClose}
-              disabled={isImproving || isSaving}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save & Close'}
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
