@@ -9,17 +9,13 @@ import { CommentBuilder } from './CommentBuilder';
 
 interface PostCardProps {
   post: RedditPost & {
-    product: {
-      name: string;
-      description: string;
-      keywords: string[];
-    }
+    product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
   };
   onGenerateReply: () => void;
 }
 
 type ExtendedRedditPost = RedditPost & { 
-  product?: Product;
+  product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
   latestReply: string | null;
 };
 
@@ -93,6 +89,16 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
     }
   };
 
+  const handleReplyUpdate = (updatedPost: RedditPost & { 
+    product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+  }) => {
+    setPost({
+      ...updatedPost,
+      latestReply: updatedPost.latestReply ?? null
+    });
+    setShowCommentBuilder(false);
+  };
+
   return (
     <div className="bg-gray-900/90 border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all w-full mb-6">
       {/* Header */}
@@ -136,40 +142,41 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         </p>
       </div>
 
-      {/* Generated Reply section */}
+      {/* Generated Reply section with updated gradient border */}
       {post.latestReply && (
-        <div className="mt-6 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 animate-gradient rounded-lg" />
-          <div className="relative bg-gray-900/80 backdrop-blur-sm p-4 rounded-lg border border-gray-800/50">
-            <div className="flex justify-between items-start mb-2">
-              <h4 className="text-sm font-medium text-gray-400">Generated Reply</h4>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopyReply}
-                  className="text-gray-400 hover:text-gray-300"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`replied-${post.id}`}
-                    checked={isReplied}
-                    onCheckedChange={handleReplyStatusChange}
-                  />
-                  <label
-                    htmlFor={`replied-${post.id}`}
-                    className="text-sm text-gray-400"
+        <div className="mt-6">
+          <div className="rounded-lg p-[1px] bg-gradient-to-r from-indigo-500/50 via-purple-500/50 to-pink-500/50">
+            <div className="bg-gray-900 rounded-lg p-4">
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="text-sm font-medium text-gray-400">Generated Reply</h4>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyReply}
+                    className="text-gray-400 hover:text-gray-300"
                   >
-                    Mark as Replied
-                  </label>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`replied-${post.id}`}
+                      checked={isReplied}
+                      onCheckedChange={handleReplyStatusChange}
+                    />
+                    <label
+                      htmlFor={`replied-${post.id}`}
+                      className="text-sm text-gray-400"
+                    >
+                      Mark as Replied
+                    </label>
+                  </div>
                 </div>
               </div>
+              <p className="text-gray-300 text-sm whitespace-pre-wrap">
+                {post.latestReply}
+              </p>
             </div>
-            <p className="text-gray-300 text-sm whitespace-pre-wrap">
-              {post.latestReply}
-            </p>
           </div>
         </div>
       )}
@@ -182,10 +189,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
             onGenerateReply();
           }}
           post={post}
-          onReplyUpdate={(updatedPost) => {
-            setPost(updatedPost);
-            setShowCommentBuilder(false);
-          }}
+          onReplyUpdate={handleReplyUpdate}
         />
       )}
 

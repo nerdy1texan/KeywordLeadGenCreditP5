@@ -14,9 +14,11 @@ interface CommentBuilderProps {
   isOpen: boolean;
   onClose: () => void;
   post: RedditPost & { 
-    product?: Product;
+    product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
   };
-  onReplyUpdate?: (updatedPost: RedditPost & { product?: Product }) => void;
+  onReplyUpdate?: (updatedPost: RedditPost & { 
+    product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+  }) => void;
 }
 
 export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: CommentBuilderProps) {
@@ -39,36 +41,31 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
     url: post?.product?.url || ''
   };
 
-  const saveReply = async (replyText: string) => {
+  const saveReply = async (reply: string) => {
     try {
-      const response = await fetch(`/api/posts/${post.id}/comment`, {
-        method: 'POST',
+      const response = await fetch(`/api/posts/${post.id}/reply`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ comment: replyText }),
+        body: JSON.stringify({ latestReply: reply }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to save reply');
-      }
+      if (!response.ok) throw new Error('Failed to save reply');
 
       const updatedPost = await response.json();
       
       if (onReplyUpdate) {
-        onReplyUpdate(updatedPost);
+        onReplyUpdate({
+          ...updatedPost,
+          product: post.product // Maintain the existing product data
+        });
       }
-
+      
       return updatedPost;
     } catch (error) {
       console.error('Error saving reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save reply",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return null;
+      throw error;
     }
   };
 
@@ -79,36 +76,18 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
 
   const handleSaveAndClose = async () => {
     if (!currentReply.trim()) {
-      toast({
-        title: "Error",
-        description: "Reply cannot be empty",
-        variant: "destructive",
-        duration: 3000,
-      });
+      toast("Reply cannot be empty", "error");
       return;
     }
 
     try {
       setIsSaving(true);
-      const updatedPost = await saveReply(currentReply);
-      
-      if (updatedPost) {
-        onClose();
-        
-        toast({
-          title: "Success",
-          description: "Reply saved successfully",
-          duration: 3000,
-        });
-      }
+      await saveReply(currentReply);
+      toast("Reply saved successfully", "success");
+      onClose();
     } catch (error) {
-      console.error('Error in handleSaveAndClose:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save reply",
-        variant: "destructive",
-        duration: 3000,
-      });
+      console.error('Error saving reply:', error);
+      toast("Failed to save reply", "error");
     } finally {
       setIsSaving(false);
     }
@@ -165,6 +144,12 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
         const updatedPost = await saveReply(cleanedContent);
         if (updatedPost) {
           setCurrentReply(updatedPost.latestReply);
+          if (onReplyUpdate) {
+            onReplyUpdate({
+              ...updatedPost,
+              product: post.product
+            });
+          }
         }
       } finally {
         setIsImproving(false);
@@ -179,6 +164,15 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
     'Make it longer': 'Expand the reply with more details and examples, strengthening both the advice and product relevance.',
     'Add more examples': 'Add relevant examples that reinforce both the advice and product value.',
     'Make it more empathetic': 'Enhance the empathy and understanding while maintaining the natural product recommendation.'
+  };
+
+  const handleCopyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(currentReply);
+      toast("Reply copied to clipboard", "success");
+    } catch (error) {
+      toast("Failed to copy to clipboard", "error");
+    }
   };
 
   return (
@@ -228,13 +222,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
                         variant="outline"
                         size="sm"
                         className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
-                        onClick={() => {
-                          navigator.clipboard.writeText(currentReply);
-                          toast({
-                            title: "Copied",
-                            description: "Reply copied to clipboard",
-                          });
-                        }}
+                        onClick={handleCopyToClipboard}
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                         <Copy className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300"

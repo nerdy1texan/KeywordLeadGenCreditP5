@@ -1,30 +1,23 @@
-import { prisma } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(
-  req: NextRequest,
+  req: Request,
   { params }: { params: { postId: string } }
 ) {
   try {
-    const { postId } = params;
-
     const post = await prisma.redditPost.findUnique({
-      where: { id: postId },
-      include: {
-        product: true
-      }
+      where: { id: params.postId },
+      include: { product: true },
     });
 
     if (!post) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
     const productUrl = post.product.url || '#';
@@ -74,51 +67,44 @@ Requirements:
 
     const generatedReply = completion.choices[0].message.content;
 
-    // Update the post with the generated reply
+    // Update the post with the new reply
     const updatedPost = await prisma.redditPost.update({
-      where: { id: postId },
-      data: {
+      where: { id: params.postId },
+      data: { 
         latestReply: generatedReply,
-        isReplied: false
+        isReplied: false // Reset this as it's a new reply
       },
-      include: {
-        product: true
-      }
+      include: { product: true }, // Make sure to include the product
     });
 
     return NextResponse.json(updatedPost);
   } catch (error) {
     console.error('Error generating reply:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate reply' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to generate reply' }, { status: 500 });
   }
 }
 
-// Update reply status
 export async function PATCH(
-  req: NextRequest,
+  req: Request,
   { params }: { params: { postId: string } }
 ) {
   try {
-    const { postId } = params;
-    const { isReplied } = await req.json();
+    const body = await req.json();
+    const { latestReply, isReplied } = body;
+
+    const updateData: any = {};
+    if (latestReply !== undefined) updateData.latestReply = latestReply;
+    if (isReplied !== undefined) updateData.isReplied = isReplied;
 
     const updatedPost = await prisma.redditPost.update({
-      where: { id: postId },
-      data: { isReplied },
-      include: {
-        product: true // Include product info in response
-      }
+      where: { id: params.postId },
+      data: updateData,
+      include: { product: true }, // Make sure to include the product
     });
 
     return NextResponse.json(updatedPost);
   } catch (error) {
-    console.error("Error updating reply status:", error);
-    return NextResponse.json(
-      { error: "Failed to update reply status" },
-      { status: 500 }
-    );
+    console.error('Error updating post:', error);
+    return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });
   }
 }
