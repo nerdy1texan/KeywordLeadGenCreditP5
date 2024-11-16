@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -129,6 +129,13 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     setFilters(prev => ({ ...prev, timeRange }));
   };
 
+  const refreshDashboard = useCallback(async () => {
+    setLoading(true);
+    await fetchPosts();
+    await fetchMonitoredSubreddits();
+    setLoading(false);
+  }, [filters, productId]);
+
   return (
     <div className="space-y-6 p-6">
       {!productId ? (
@@ -162,6 +169,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
               onClose={() => setShowMonitoringDialog(false)}
               monitoredSubreddits={monitoredSubreddits}
               productId={currentProduct.id}
+              onSuccess={refreshDashboard}
             />
           )}
 

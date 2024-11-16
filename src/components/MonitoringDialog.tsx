@@ -11,15 +11,17 @@ import { useRouter } from "next/navigation";
 interface MonitoringDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  monitoredSubreddits: SubredditSuggestion[];
+  subreddits: SubredditSuggestion[];
   productId: string;
+  onSuccess?: () => void;
 }
 
 export function MonitoringDialog({ 
   isOpen, 
   onClose, 
-  monitoredSubreddits,
-  productId
+  subreddits,
+  productId,
+  onSuccess
 }: MonitoringDialogProps) {
   const [selectedSubreddits, setSelectedSubreddits] = useState<string[]>([]);
   const [postsPerSubreddit, setPostsPerSubreddit] = useState(5);
@@ -27,43 +29,37 @@ export function MonitoringDialog({
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleMonitor = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
       const response = await fetch('/api/reddit/monitor', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          subreddits: selectedSubreddits,
-          postsPerSubreddit,
+          subreddits: subreddits.map(s => s.name),
+          postsPerSubreddit: 10,
           productId
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to start monitoring');
-      }
+      if (!response.ok) throw new Error('Failed to monitor subreddits');
 
-      const data = await response.json();
+      const result = await response.json();
       
       toast({
-        title: "Success",
-        description: `Found ${data.postsFound} posts, saved ${data.savedCount} to database`,
+        title: "Monitoring Complete",
+        description: `Found ${result.postsFound} posts, saved ${result.savedCount} new posts.`,
       });
 
-      // Close dialog and refresh
+      onSuccess?.();
       onClose();
-      router.refresh();
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error('Monitoring error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to monitor subreddits",
+        description: "Failed to monitor subreddits. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -83,10 +79,10 @@ export function MonitoringDialog({
             <div className="flex items-center gap-2">
               <Checkbox 
                 id="select-all"
-                checked={selectedSubreddits.length === monitoredSubreddits.length}
+                checked={selectedSubreddits?.length === subreddits?.length}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setSelectedSubreddits(monitoredSubreddits.map(s => s.name));
+                    setSelectedSubreddits(subreddits?.map(s => s.name) || []);
                   } else {
                     setSelectedSubreddits([]);
                   }
@@ -96,17 +92,17 @@ export function MonitoringDialog({
             </div>
             
             <div className="grid grid-cols-1 gap-2 pl-6">
-              {monitoredSubreddits.map((subreddit) => (
+              {subreddits?.map((subreddit) => (
                 <div key={subreddit.id} className="flex items-center gap-2">
                   <Checkbox 
                     id={subreddit.id}
-                    checked={selectedSubreddits.includes(subreddit.name)}
+                    checked={selectedSubreddits?.includes(subreddit.name)}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedSubreddits(prev => [...prev, subreddit.name]);
+                        setSelectedSubreddits(prev => [...(prev || []), subreddit.name]);
                       } else {
                         setSelectedSubreddits(prev => 
-                          prev.filter(name => name !== subreddit.name)
+                          (prev || []).filter(name => name !== subreddit.name)
                         );
                       }
                     }}
@@ -145,8 +141,8 @@ export function MonitoringDialog({
             Cancel
           </Button>
           <Button 
-            onClick={handleSubmit}
-            disabled={selectedSubreddits.length === 0 || isLoading}
+            onClick={handleMonitor}
+            disabled={!selectedSubreddits?.length || isLoading}
           >
             {isLoading ? (
               <>
