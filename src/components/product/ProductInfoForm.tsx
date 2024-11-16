@@ -103,12 +103,11 @@ export default function ProductInfoForm() {
       
       const data = await response.json();
       
-      // Check if data exists and has the expected properties
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response from server');
       }
       
-      formik.setValues({
+      void formik.setValues({
         ...formik.values,
         name: data.name || formik.values.name,
         description: data.description || formik.values.description,
@@ -131,12 +130,12 @@ export default function ProductInfoForm() {
       notify({ message: "Keyword already exists", type: "error" });
       return;
     }
-    formik.setFieldValue("keywords", [...formik.values.keywords, newKeyword.trim()]);
+    void formik.setFieldValue("keywords", [...formik.values.keywords, newKeyword.trim()]);
     setNewKeyword("");
   };
 
   const handleRemoveKeyword = (keyword: string) => {
-    formik.setFieldValue(
+    void formik.setFieldValue(
       "keywords",
       formik.values.keywords.filter((k) => k !== keyword)
     );
@@ -154,7 +153,7 @@ export default function ProductInfoForm() {
 
   const handleAddPlan = () => {
     if (newPlan.name && newPlan.features.length > 0) {
-      formik.setFieldValue("plans", [...formik.values.plans, newPlan]);
+      void formik.setFieldValue("plans", [...formik.values.plans, newPlan]);
       setNewPlan({ name: "", price: 0, features: [] });
     }
   };
@@ -276,7 +275,7 @@ export default function ProductInfoForm() {
     setEditingPlan(plan);
     setNewPlan(plan);
     // Remove the plan from the list while editing
-    handleDeletePlan(index);
+    void handleDeletePlan(index);
   };
 
   const handleToggle = async (subreddit: SubredditSuggestion) => {

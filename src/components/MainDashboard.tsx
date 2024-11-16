@@ -84,9 +84,19 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   };
 
   useEffect(() => {
-    if (productId) {
-      void fetchPosts().catch(console.error);
-    }
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        await fetchPosts();
+        await fetchMonitoredSubreddits();
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchData();
   }, [productId, filters]);
 
   const fetchMonitoredSubreddits = async () => {
