@@ -1,4 +1,4 @@
-import { RedditPost } from '@prisma/client';
+import { RedditPost, Product } from '@/types/product';
 import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
 import { Star, ExternalLink, Copy, Check } from 'lucide-react';
@@ -18,12 +18,20 @@ interface PostCardProps {
   onGenerateReply: () => void;
 }
 
+type ExtendedRedditPost = RedditPost & { 
+  product?: Product;
+  latestReply: string | null;
+};
+
 export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const { toast } = useToast();
-  const [post, setPost] = useState<RedditPost & { product?: Product }>(initialPost);
+  const [post, setPost] = useState<ExtendedRedditPost>({
+    ...initialPost,
+    latestReply: initialPost.latestReply ?? null
+  });
 
   const handleGenerateReply = async () => {
     try {
@@ -40,64 +48,26 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
 
       const updatedPost = await response.json();
       
-      // Update post state first
       setPost(prevPost => ({
         ...prevPost,
-        latestReply: updatedPost.latestReply,
+        latestReply: updatedPost.latestReply ?? null,
         product: updatedPost.product
       }));
 
-      // Show CommentBuilder and notify success
       setShowCommentBuilder(true);
-      toast({
-        title: "Reply Generated",
-        description: "Your reply has been generated successfully!",
-      });
+      toast("Reply generated successfully!", "success");
     } catch (error) {
       console.error('Generate reply error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate reply. Please try again.",
-        variant: "destructive",
-      });
+      toast("Failed to generate reply. Please try again.", "error");
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const handleSaveReply = async (comment: string) => {
-    try {
-      const response = await fetch(`/api/posts/${post.id}/comment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ comment }),
-      });
-
-      if (!response.ok) throw new Error('Failed to save reply');
-
-      onGenerateReply(); // Refresh the post data
-      toast({
-        title: "Reply Saved",
-        description: "Your reply has been saved successfully!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save reply. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
   const handleCopyReply = async () => {
     if (post.latestReply) {
       await navigator.clipboard.writeText(post.latestReply);
-      toast({
-        title: "Copied!",
-        description: "Reply copied to clipboard",
-      });
+      toast("Reply copied to clipboard", "success");
     }
   };
 
@@ -114,16 +84,12 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       if (!response.ok) throw new Error('Failed to update reply status');
 
       setIsReplied(checked);
-      toast({
-        title: checked ? "Marked as Replied" : "Marked as Not Replied",
-        description: checked ? "Post has been marked as replied" : "Post has been marked as not replied",
-      });
+      toast(
+        checked ? "Post has been marked as replied" : "Post has been marked as not replied",
+        "success"
+      );
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update reply status",
-        variant: "destructive",
-      });
+      toast("Failed to update reply status", "error");
     }
   };
 
