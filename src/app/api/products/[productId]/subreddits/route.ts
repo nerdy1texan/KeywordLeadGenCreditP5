@@ -3,15 +3,15 @@ import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-// Create a type for the handler that includes context
+// Update the RouteHandler type to match withMiddleware's return type
 type RouteHandler = (
   req: NextRequest,
   context: { params: { productId: string } }
-) => Promise<NextResponse>;
+) => Promise<Response | undefined>;
 
-// Wrap the handlers with the type
-export const GET: RouteHandler = withMiddleware(async (req: NextRequest) => {
-  const productId = req.nextUrl.pathname.split('/')[3]; // Get productId from URL
+// Update the handler declarations to match the type
+export const GET = withMiddleware(async (req: NextRequest) => {
+  const productId = req.nextUrl.pathname.split('/')[3];
   try {
     // Debug logging
     console.log("Request received:", {
@@ -126,8 +126,8 @@ export const GET: RouteHandler = withMiddleware(async (req: NextRequest) => {
 });
 
 // PATCH endpoint remains the same but with improved error handling
-export const PATCH: RouteHandler = withMiddleware(async (req: NextRequest) => {
-  const productId = req.nextUrl.pathname.split('/')[3]; // Get productId from URL
+export const PATCH = withMiddleware(async (req: NextRequest) => {
+  const productId = req.nextUrl.pathname.split('/')[3];
   try {
     const body = await req.json();
     const { subredditId, isMonitored } = body;
