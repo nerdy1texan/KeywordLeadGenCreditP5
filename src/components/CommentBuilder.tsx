@@ -93,12 +93,6 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
     }
   };
 
-  const handleImprove = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsImproving(true);
-    handleSubmit(e);
-  };
-
   const { messages, handleSubmit, input, handleInputChange } = useChat({
     api: '/api/chat',
     initialMessages: [
@@ -289,7 +283,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
                 ))}
               </div>
 
-              <form onSubmit={handleImprove} className="flex gap-3">
+              <form onSubmit={handleSubmit} className="flex gap-3">
                 <Textarea
                   value={input}
                   onChange={handleInputChange}
