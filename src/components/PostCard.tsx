@@ -143,8 +143,25 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
 
       {/* Content */}
       <div className="mt-4">
-        <p className="text-gray-300 whitespace-pre-wrap">
-          {post.text}
+        <p className="text-gray-300 whitespace-pre-wrap break-words">
+          {post.text.split(/\s+/).map((word, index) => {
+            if (word.match(/^(https?:\/\/[^\s]+)/)) {
+              return (
+                <span key={index}>
+                  <a 
+                    href={word}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 break-all"
+                  >
+                    {word}
+                  </a>
+                  {' '}
+                </span>
+              );
+            }
+            return word + ' ';
+          })}
         </p>
       </div>
 
