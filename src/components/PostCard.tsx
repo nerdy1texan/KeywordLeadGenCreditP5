@@ -208,7 +208,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         </div>
       )}
 
-      {showCommentBuilder && (
+      {post.latestReply && showCommentBuilder && (
         <CommentBuilder
           isOpen={showCommentBuilder}
           onClose={() => {
