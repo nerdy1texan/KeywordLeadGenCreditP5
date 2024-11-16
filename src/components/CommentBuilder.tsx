@@ -135,7 +135,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         <DialogHeader className="relative z-10">
           <div className="flex justify-between items-center">
             <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
-              AI Comment Assistant
+              AI Reply Assistant
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -208,10 +208,10 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
                     variant="outline"
                     disabled={isImproving}
                     onClick={() => handleInputChange({ target: { value: prompt } } as any)}
-                    className="relative group overflow-hidden bg-gray-900/50 border border-gray-800/50 hover:border-purple-500/50 transition-all duration-300"
+                    className="relative group overflow-hidden bg-gray-900/50 border border-gray-800/50 hover:border-transparent transition-all duration-300"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <span className="relative z-10 font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                    <span className="relative z-10 font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:text-white transition-all duration-300">
                       {label}
                     </span>
                   </Button>
