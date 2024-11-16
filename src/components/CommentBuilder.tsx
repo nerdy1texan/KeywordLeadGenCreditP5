@@ -27,7 +27,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isOpen && post?.latestReply) {
+    if (isOpen && post?.latestReply && !currentReply) {
       setCurrentReply(post.latestReply);
     }
   }, [isOpen, post?.id]);
@@ -41,10 +41,6 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
 
   const saveReply = async (replyText: string) => {
     try {
-      setIsSaving(true);
-      
-      console.log("Saving reply:", replyText);
-
       const response = await fetch(`/api/posts/${post.id}/comment`, {
         method: 'POST',
         headers: {
@@ -58,21 +54,10 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
       }
 
       const updatedPost = await response.json();
-      console.log("Save response:", updatedPost);
-
-      // Update local state
-      setCurrentReply(updatedPost.latestReply);
       
-      // Call the callback to update parent component
       if (onReplyUpdate) {
         onReplyUpdate(updatedPost);
       }
-
-      toast({
-        title: "Success",
-        description: "Reply saved successfully",
-        duration: 3000,
-      });
 
       return updatedPost;
     } catch (error) {
@@ -84,8 +69,6 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
         duration: 3000,
       });
       return null;
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -95,22 +78,23 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
   };
 
   const handleSaveAndClose = async () => {
-    try {
-      if (!currentReply.trim()) {
-        toast({
-          title: "Error",
-          description: "Reply cannot be empty",
-          variant: "destructive",
-          duration: 3000,
-        });
-        return;
-      }
+    if (!currentReply.trim()) {
+      toast({
+        title: "Error",
+        description: "Reply cannot be empty",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
 
+    try {
       setIsSaving(true);
       const updatedPost = await saveReply(currentReply);
       
       if (updatedPost) {
         onClose();
+        
         toast({
           title: "Success",
           description: "Reply saved successfully",
@@ -201,7 +185,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
     <Dialog 
       open={isOpen} 
       onOpenChange={(open) => {
-        if (!open && !isImproving && !isSaving) {
+        if (!open) {
           onClose();
         }
       }}
