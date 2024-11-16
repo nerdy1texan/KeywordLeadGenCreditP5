@@ -2,62 +2,51 @@ import { withMiddleware } from "@/lib/apiHelper";
 import { prisma } from "@/lib/db";
 import { ApifyClient } from 'apify-client';
 import { type NextRequest, NextResponse } from "next/server";
-import { type CreateRedditPost } from '@/types/product';
+import { type RedditPostData, type ProcessedRedditPost } from '@/types/reddit';
 
 const apifyClient = new ApifyClient({
   token: process.env.APIFY_API_TOKEN,
 });
 
-const MIN_POSTS_PER_SUBREDDIT = 10;
-
-async function getRedditPosts(subreddit: string, postsCount: number) {
+async function getRedditPosts(subreddit: string, limit: number): Promise<ProcessedRedditPost[]> {
   try {
-    console.log(`Starting Apify scrape for r/${subreddit} with count ${postsCount}`);
-    
-    const scrapeCount = Math.max(MIN_POSTS_PER_SUBREDDIT, postsCount);
-    
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
       startUrls: [{
         url: `https://www.reddit.com/r/${subreddit.toLowerCase()}/`,
         method: "GET"
       }],
-      maxItems: scrapeCount * 2,
-      maxPostCount: scrapeCount * 2,
+      maxItems: limit * 2,
+      maxPostCount: limit * 2,
       proxy: {
         useApifyProxy: true
       }
     });
 
-    const dataset = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
     
-    // Filter only post items and transform to match our schema
-    const posts = dataset?.items?.filter(item => 
-      item?.dataType === 'post' && 
-      item?.id?.startsWith('t3_') && 
-      item?.title && 
-      item?.url
-    ).map(post => ({
-      redditId: post.parsedId || post.id.replace('t3_', ''),
-      title: post.title?.trim() || '',
-      text: post.body?.trim() || '',
-      url: post.url,
-      subreddit: post.parsedCommunityName || post.communityName?.replace('r/', ''),
-      author: post.username || 'Anonymous',
-      createdAt: new Date(post.createdAt),
-      productId: '',
-      engagement: 'unseen',
-      fit: 0,
-      authenticity: 0,
-      lead: 0,
-      isFavorited: false,
-      isReplied: false
-    })) as CreateRedditPost[];
-
-    // Take exactly the number of posts requested (after ensuring we have enough valid ones)
-    const limitedPosts = posts.slice(0, postsCount);
-
-    console.log(`Found ${posts.length} total posts, using ${limitedPosts.length} posts for r/${subreddit}`);
-    return limitedPosts;
+    return ((items as unknown) as RedditPostData[])
+      .filter((item): item is RedditPostData => 
+        item?.id?.startsWith('t3_') &&
+        typeof item.title === 'string' &&
+        typeof item.communityName === 'string'
+      )
+      .map((post) => ({
+        redditId: post.parsedId || post.id.replace('t3_', ''),
+        title: post.title?.trim() || '',
+        text: post.body?.trim() || '',
+        url: post.url || '',
+        subreddit: post.parsedCommunityName || post.communityName?.replace('r/', ''),
+        author: '',
+        createdAt: new Date(post.createdAt),
+        productId: '',
+        engagement: 'low',
+        fit: 0,
+        authenticity: 0,
+        lead: 0,
+        isFavorited: false,
+        isReplied: false,
+        latestReply: null
+      }));
   } catch (error) {
     console.error(`Error in getRedditPosts for ${subreddit}:`, error);
     return [];
@@ -66,52 +55,49 @@ async function getRedditPosts(subreddit: string, postsCount: number) {
 
 export const POST = withMiddleware(async (req: NextRequest) => {
   try {
-    let { subreddits, postsPerSubreddit, productId } = await req.json();
+    const { subreddits, postsPerSubreddit, productId } = await req.json() as {
+      subreddits: string[];
+      postsPerSubreddit: number;
+      productId: string;
+    };
     
     const totalPostsRequested = postsPerSubreddit;
     const postsPerSub = Math.ceil(totalPostsRequested / subreddits.length);
     
-    console.log(`Requesting ${postsPerSub} posts from each of ${subreddits.length} subreddits`);
-
     // Get posts from each subreddit
     const allPosts = await Promise.all(
       subreddits.map(subreddit => getRedditPosts(subreddit, postsPerSub))
     );
 
     // Flatten and validate posts
-    const validPosts = allPosts.flat().filter(Boolean);
+    const validPosts = allPosts.flat().filter((post): post is ProcessedRedditPost => !!post);
     
-    if (validPosts.length === 0) {
-      throw new Error(`No valid posts found from subreddits: ${subreddits.join(', ')}`);
-    }
-
-    // Score posts with more lenient criteria
+    // Get product for scoring
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { keywords: true }
     });
 
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    // Score posts
     const scoredPosts = validPosts.map(post => {
-      const postText = `${post.title} ${post.text}`.toLowerCase();
-      const matchedKeywords = product.keywords.filter(keyword => 
-        postText.includes(keyword.toLowerCase())
+      const matchedKeywords = product.keywords.filter(keyword =>
+        post.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        post.text.toLowerCase().includes(keyword.toLowerCase())
       );
 
-      // More lenient scoring
       return {
         ...post,
         productId,
-        engagement: matchedKeywords.length > 0 ? 'HOT' : 'unseen',
-        fit: matchedKeywords.length > 0 ? 70 : 30, // Lowered thresholds
-        authenticity: 50, // Base authenticity score
-        lead: matchedKeywords.length > 0 ? 75 : 25, // Lowered thresholds
-        isFavorited: false,
-        isReplied: false
+        lead: matchedKeywords.length * 25
       };
     });
 
-    // Distribute posts equally between subreddits
-    const postsToSave = subreddits.reduce((acc, subreddit) => {
+    // Group by subreddit and take top posts
+    const postsToSave = subreddits.reduce<ProcessedRedditPost[]>((acc, subreddit) => {
       const subredditPosts = scoredPosts
         .filter(post => post.subreddit.toLowerCase() === subreddit.toLowerCase())
         .sort((a, b) => b.lead - a.lead)
@@ -148,7 +134,6 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       });
     });
 
-    // Return detailed response
     return NextResponse.json({ 
       success: true, 
       postsFound: validPosts.length,
@@ -162,10 +147,10 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       )
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Monitoring error:', error);
     return NextResponse.json(
-      { error: error.message }, 
+      { error: error instanceof Error ? error.message : "Unknown error" }, 
       { status: 500 }
     );
   }

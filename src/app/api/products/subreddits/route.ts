@@ -3,6 +3,16 @@ import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { ApifyClient } from 'apify-client';
 import { OpenAI } from 'openai';
+import { type ApifySubredditResponse, isApifySubredditResponse } from '@/types/apify';
+import { type SubredditSuggestion } from '@prisma/client';
+
+// Update the RouteHandler type
+type RouteParams = { params: { productId: string } };
+
+type RouteHandler = (
+  req: NextRequest,
+  context: RouteParams
+) => Promise<NextResponse>;
 
 const apifyClient = new ApifyClient({
   token: process.env.APIFY_API_TOKEN,
@@ -12,13 +22,13 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const GET = withMiddleware(async (req: NextRequest) => {
+export const GET = (async (req: NextRequest, context: RouteParams) => {
   try {
     const description = req.nextUrl.searchParams.get("description");
-    const productId = req.nextUrl.searchParams.get("productId");
+    const productId = context.params.productId || req.nextUrl.searchParams.get("productId");
     
     if (!description || !productId) {
-      return new NextResponse("Description and Product ID are required", { status: 400 });
+      return NextResponse.json({ error: "Description and Product ID are required" }, { status: 400 });
     }
 
     // First get existing subreddits
@@ -50,77 +60,51 @@ export const GET = withMiddleware(async (req: NextRequest) => {
 
     const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
     
-    // Process and filter new subreddits
-    const newSubredditsData = items
-      .filter(item => 
-        item.dataType === "community" &&
-        item.numberOfMembers >= 1000 && // Lowered threshold
-        !item.over18 &&
-        item.displayName // Ensure displayName exists
-      )
-      .map(item => {
+    // Filter and format subreddits
+    const subreddits = (items as unknown[])
+      .filter((item): item is ApifySubredditResponse => {
+        if (!isApifySubredditResponse(item)) return false;
+        return (
+          item.dataType === 'community' && 
+          typeof item.numberOfMembers === 'number' &&
+          item.numberOfMembers >= 1000
+        );
+      })
+      .map((item) => {
         // Clean the subreddit name (remove 'r/' prefix if present)
         const name = (item.displayName || item.title || '')
           .replace(/^r\//i, '')
           .toLowerCase();
 
-        // Skip if already exists
-        if (existingNames.has(name)) {
-          console.log(`Skipping existing subreddit: ${name}`);
-          return null;
-        }
-
-        const relevanceScore = calculateRelevanceScore(item, keywords);
-        
-        // Only include if relevance score is high enough
-        if (relevanceScore < 75) {
-          console.log(`Skipping low relevance subreddit: ${name} (${relevanceScore}%)`);
-          return null;
-        }
+        if (existingNames.has(name)) return null;
 
         return {
           name,
-          title: item.title || name,
-          description: item.description || "No description available",
-          memberCount: parseInt(item.numberOfMembers) || 0,
-          url: `https://reddit.com/r/${name}`,
-          relevanceScore,
+          title: item.title,
+          description: item.description || '',
+          memberCount: item.numberOfMembers,
+          url: item.url,
+          relevanceScore: calculateRelevanceScore(item, keywords),
           matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
           isMonitored: false,
-          productId,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
+          productId
+        } satisfies Omit<SubredditSuggestion, 'id' | 'createdAt' | 'updatedAt'>;
       })
-      .filter(Boolean) // Remove null entries
-      .sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    console.log(`Found ${newSubredditsData.length} new relevant subreddits`);
+      .filter((sub): sub is NonNullable<typeof sub> => sub !== null)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 20);
 
     // Store new subreddits in database
-    if (newSubredditsData.length > 0) {
+    if (subreddits.length > 0) {
       try {
         await prisma.$transaction(
-          newSubredditsData.map(subreddit => 
-            prisma.subredditSuggestion.upsert({
-              where: {
-                productId_name: {
-                  productId: productId,
-                  name: subreddit.name
-                }
-              },
-              update: {
-                relevanceScore: subreddit.relevanceScore,
-                matchReason: subreddit.matchReason,
-                description: subreddit.description,
-                memberCount: subreddit.memberCount,
-                updatedAt: new Date()
-              },
-              create: subreddit
+          subreddits.map(subreddit => 
+            prisma.subredditSuggestion.create({
+              data: subreddit
             })
           )
         );
-        console.log(`Successfully processed ${newSubredditsData.length} subreddits`);
+        console.log(`Successfully processed ${subreddits.length} subreddits`);
       } catch (error) {
         console.error('Error processing subreddits:', error);
       }
@@ -133,14 +117,14 @@ export const GET = withMiddleware(async (req: NextRequest) => {
     });
 
     return NextResponse.json(allSubreddits);
-  } catch (error: any) {
+  } catch (error) {
     console.error("API Error:", error);
-    return new NextResponse(
-      JSON.stringify({ error: error.message || "Failed to fetch subreddits" }), 
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to fetch subreddits" }, 
       { status: 500 }
     );
   }
-});
+}) satisfies RouteHandler;
 
 // Helper function to extract keywords using OpenAI
 async function extractKeywords(description: string): Promise<string[]> {
@@ -167,7 +151,7 @@ async function extractKeywords(description: string): Promise<string[]> {
 }
 
 // Helper function to calculate relevance score
-function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
+function calculateRelevanceScore(subreddit: ApifySubredditResponse, keywords: string[]): number {
   let score = 70; // Base score
   let relevanceHits = 0;
   const totalKeywords = keywords.length;
@@ -175,7 +159,7 @@ function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
   // Check title and description for keyword matches
   keywords.forEach(keyword => {
     const keywordLower = keyword.toLowerCase();
-    const titleLower = subreddit.title?.toLowerCase() || '';
+    const titleLower = subreddit.title.toLowerCase();
     const descLower = subreddit.description?.toLowerCase() || '';
     
     // Direct matches in title are very important
@@ -209,7 +193,7 @@ function calculateRelevanceScore(subreddit: any, keywords: string[]): number {
 }
 
 // Helper function to search for subreddits using Apify
-async function getSubredditsFromApify(keywords: string[]) {
+async function getSubredditsFromApify(keywords: string[], productId: string) {
   try {
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
       searches: keywords,
@@ -227,14 +211,18 @@ async function getSubredditsFromApify(keywords: string[]) {
     });
 
     const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
-
+    
     // Filter and format subreddits
-    const subreddits = items
-      .filter((item: any) => 
-        item.dataType === 'community' && 
-        item.numberOfMembers > 10000 // Only communities with significant membership
-      )
-      .map((item: any) => ({
+    const subreddits = (items as unknown[])
+      .filter((item): item is ApifySubredditResponse => {
+        if (!isApifySubredditResponse(item)) return false;
+        return (
+          item.dataType === 'community' && 
+          typeof item.numberOfMembers === 'number' &&
+          item.numberOfMembers >= 1000
+        );
+      })
+      .map((item) => ({
         name: item.title,
         title: item.title,
         description: item.description || '',
@@ -244,12 +232,12 @@ async function getSubredditsFromApify(keywords: string[]) {
         matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
         isMonitored: false,
         productId
-      }))
-      .filter(sub => sub.relevanceScore >= 75) // Only keep highly relevant ones
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 20); // Keep top 20 most relevant
+      }));
 
-    return subreddits;
+    return subreddits
+      .filter(sub => sub.relevanceScore >= 75)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 20);
   } catch (error) {
     console.error("Error in findRelevantSubreddits:", error);
     return [];
