@@ -8,18 +8,28 @@ import { useChat } from 'ai/react';
 import { X, Save, Copy, Send, Edit, Check } from 'lucide-react';
 import { useToast } from './ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
+import { RedditPost, Product } from '@/types/product';
 
 interface CommentBuilderProps {
   isOpen: boolean;
   onClose: () => void;
-  post: RedditPost & { product: Product };
+  post: RedditPost & { 
+    product?: Product;
+  };
 }
 
 export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
-  const [currentReply, setCurrentReply] = useState(post.latestReply || '');
+  const [currentReply, setCurrentReply] = useState(post?.latestReply || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
   const { toast } = useToast();
+
+  const productData = {
+    name: post?.product?.name || 'Product',
+    description: post?.product?.description || '',
+    keywords: post?.product?.keywords || [],
+    url: post?.product?.url || ''
+  };
 
   const saveReply = async (replyText: string) => {
     try {
@@ -89,15 +99,15 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         content: `You are an expert at improving Reddit replies while maintaining subtle product promotion.
         
         Product Context:
-        Name: ${post.product.name}
-        Description: ${post.product.description}
-        Keywords: ${post.product.keywords.join(', ')}
-        URL: ${post.product.url}
+        Name: ${productData.name}
+        Description: ${productData.description}
+        Keywords: ${productData.keywords.join(', ')}
+        URL: ${productData.url}
         
         Post Context:
-        Subreddit: ${post.subreddit}
-        Title: ${post.title}
-        Content: ${post.text}
+        Subreddit: ${post?.subreddit || ''}
+        Title: ${post?.title || ''}
+        Content: ${post?.text || ''}
         
         Current Reply: ${currentReply}
         
@@ -114,10 +124,9 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
       }
     ],
     onFinish: async (message) => {
-      // Clean up any duplicate URLs before saving
+      setIsImproving(false);
       const cleanedContent = message.content.replace(/(?:https?:\/\/[^\s]+)(?:.*)(https?:\/\/[^\s]+)/g, '$1');
       setCurrentReply(cleanedContent);
-      setIsImproving(false);
       await saveReply(cleanedContent);
     },
   });
