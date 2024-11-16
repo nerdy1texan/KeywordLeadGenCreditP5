@@ -1,6 +1,5 @@
-import { withMiddleware } from "@/lib/apiHelper";
-import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { ApifyClient } from 'apify-client';
 import { OpenAI } from 'openai';
 import { type ApifySubredditResponse, isApifySubredditResponse } from '@/types/apify';

@@ -85,7 +85,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
 
   useEffect(() => {
     if (productId) {
-      fetchPosts();
+      void fetchPosts().catch(console.error);
     }
   }, [productId, filters]);
 
@@ -110,14 +110,14 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   };
 
   useEffect(() => {
-    fetchMonitoredSubreddits();
-  }, []);
+    void fetchMonitoredSubreddits().catch(console.error);
+  }, [productId]);
 
   useEffect(() => {
     if (monitoredSubreddits.length > 0) {
-      fetchPosts();
+      void fetchPosts().catch(console.error);
     }
-  }, [filters]);
+  }, [monitoredSubreddits]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -144,12 +144,9 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     setFilters(prev => ({ ...prev, timeRange }));
   };
 
-  const refreshDashboard = useCallback(async () => {
-    setLoading(true);
-    await fetchPosts();
-    await fetchMonitoredSubreddits();
-    setLoading(false);
-  }, [filters, productId]);
+  const handleRefresh = useCallback(() => {
+    void fetchPosts().catch(console.error);
+  }, []);
 
   return (
     <div className="space-y-6 p-6">
@@ -184,7 +181,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
               onClose={() => setShowMonitoringDialog(false)}
               monitoredSubreddits={monitoredSubreddits}
               productId={currentProduct.id}
-              onSuccess={refreshDashboard}
+              onSuccess={handleRefresh}
             />
           )}
 

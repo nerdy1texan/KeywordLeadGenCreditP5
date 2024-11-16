@@ -3,13 +3,6 @@ import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
-// Update the RouteHandler type to match withMiddleware's return type
-type RouteHandler = (
-  req: NextRequest,
-  context: { params: { productId: string } }
-) => Promise<Response | undefined>;
-
-// Update the handler declarations to match the type
 export const GET = withMiddleware(async (req: NextRequest) => {
   const productId = req.nextUrl.pathname.split('/')[3];
   try {
@@ -125,7 +118,6 @@ export const GET = withMiddleware(async (req: NextRequest) => {
   }
 });
 
-// PATCH endpoint remains the same but with improved error handling
 export const PATCH = withMiddleware(async (req: NextRequest) => {
   const productId = req.nextUrl.pathname.split('/')[3];
   try {
