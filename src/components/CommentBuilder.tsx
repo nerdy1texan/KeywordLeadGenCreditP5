@@ -31,8 +31,8 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
     url: post?.product?.url || ''
   };
 
-  // Simplified save and close function
-  const handleSaveAndClose = async () => {
+  // Separate save and close functions
+  const saveReply = async () => {
     try {
       if (currentReply) {
         const response = await fetch(`/api/posts/${post.id}/comment`, {
@@ -48,6 +48,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         toast({
           title: "Success",
           description: "Reply saved successfully",
+          duration: 3000,
         });
       }
     } catch (error) {
@@ -55,11 +56,20 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
       toast({
         title: "Error",
         description: "Failed to save reply",
-        variant: "destructive"
+        variant: "destructive",
+        duration: 3000,
       });
-    } finally {
-      onClose();
     }
+  };
+
+  // Handle different close scenarios
+  const handleCancel = () => {
+    onClose();
+  };
+
+  const handleSaveAndClose = async () => {
+    await saveReply();
+    onClose();
   };
 
   // Add this function before the useChat setup
@@ -128,7 +138,12 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleSaveAndClose}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        if (!open) handleCancel();
+      }}
+    >
       <DialogContent className="sm:max-w-[800px] bg-gray-950/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transform-gpu">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50 rounded-lg animate-gradient-slow" />
         
@@ -242,7 +257,7 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
           <div className="flex justify-end gap-3 mt-2">
             <Button 
               variant="outline" 
-              onClick={handleSaveAndClose}
+              onClick={handleCancel}
               className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
             >
               <X className="h-4 w-4 mr-2" />
