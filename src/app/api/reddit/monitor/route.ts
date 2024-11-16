@@ -14,13 +14,15 @@ async function getRedditPosts(subreddit: string, postsCount: number) {
   try {
     console.log(`Starting Apify scrape for r/${subreddit} with count ${postsCount}`);
     
+    const scrapeCount = Math.max(MIN_POSTS_PER_SUBREDDIT, postsCount);
+    
     const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
       startUrls: [{
         url: `https://www.reddit.com/r/${subreddit.toLowerCase()}/`,
         method: "GET"
       }],
-      maxItems: postsCount,
-      maxPostCount: postsCount,
+      maxItems: scrapeCount * 2,
+      maxPostCount: scrapeCount * 2,
       proxy: {
         useApifyProxy: true
       }
@@ -51,8 +53,11 @@ async function getRedditPosts(subreddit: string, postsCount: number) {
       isReplied: false
     })) as CreateRedditPost[];
 
-    console.log(`Found ${posts?.length} valid posts for r/${subreddit}`);
-    return posts || [];
+    // Take exactly the number of posts requested (after ensuring we have enough valid ones)
+    const limitedPosts = posts.slice(0, postsCount);
+
+    console.log(`Found ${posts.length} total posts, using ${limitedPosts.length} posts for r/${subreddit}`);
+    return limitedPosts;
   } catch (error) {
     console.error(`Error in getRedditPosts for ${subreddit}:`, error);
     return [];
@@ -63,9 +68,14 @@ export const POST = withMiddleware(async (req: NextRequest) => {
   try {
     let { subreddits, postsPerSubreddit, productId } = await req.json();
     
+    const totalPostsRequested = postsPerSubreddit;
+    const postsPerSub = Math.ceil(totalPostsRequested / subreddits.length);
+    
+    console.log(`Requesting ${postsPerSub} posts from each of ${subreddits.length} subreddits`);
+
     // Get posts from each subreddit
     const allPosts = await Promise.all(
-      subreddits.map(subreddit => getRedditPosts(subreddit, Math.max(MIN_POSTS_PER_SUBREDDIT, postsPerSubreddit)))
+      subreddits.map(subreddit => getRedditPosts(subreddit, postsPerSub))
     );
 
     // Flatten and validate posts
@@ -75,7 +85,7 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       throw new Error(`No valid posts found from subreddits: ${subreddits.join(', ')}`);
     }
 
-    // Score posts based on product keywords
+    // Score posts with more lenient criteria
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { keywords: true }
@@ -87,29 +97,38 @@ export const POST = withMiddleware(async (req: NextRequest) => {
         postText.includes(keyword.toLowerCase())
       );
 
+      // More lenient scoring
       return {
         ...post,
         productId,
         engagement: matchedKeywords.length > 0 ? 'HOT' : 'unseen',
-        fit: matchedKeywords.length > 0 ? 80 : 40,
-        authenticity: post.upVotes > 10 ? 75 : 50,
-        lead: matchedKeywords.length > 0 ? 90 : 30,
+        fit: matchedKeywords.length > 0 ? 70 : 30, // Lowered thresholds
+        authenticity: 50, // Base authenticity score
+        lead: matchedKeywords.length > 0 ? 75 : 25, // Lowered thresholds
         isFavorited: false,
         isReplied: false
       };
     });
 
-    // Sort by relevance and limit to requested number
-    scoredPosts.sort((a, b) => b.lead - a.lead);
-    const postsToSave = scoredPosts.slice(0, postsPerSubreddit * subreddits.length);
+    // Distribute posts equally between subreddits
+    const postsToSave = subreddits.reduce((acc, subreddit) => {
+      const subredditPosts = scoredPosts
+        .filter(post => post.subreddit.toLowerCase() === subreddit.toLowerCase())
+        .sort((a, b) => b.lead - a.lead)
+        .slice(0, postsPerSub);
+      
+      return [...acc, ...subredditPosts];
+    }, []);
+
+    // Ensure we have exactly the requested number of posts
+    const finalPosts = postsToSave.slice(0, totalPostsRequested);
 
     // Save posts to database
     const savedPosts = await prisma.$transaction(async (tx) => {
-      // Get existing redditIds
       const existingPosts = await tx.redditPost.findMany({
         where: {
           redditId: {
-            in: postsToSave.map(post => post.redditId)
+            in: finalPosts.map(post => post.redditId)
           }
         },
         select: {
@@ -118,30 +137,27 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       });
 
       const existingIds = new Set(existingPosts.map(p => p.redditId));
-      
-      // Filter out existing posts
-      const newPosts = postsToSave.filter(post => !existingIds.has(post.redditId));
+      const newPosts = finalPosts.filter(post => !existingIds.has(post.redditId));
 
       if (newPosts.length === 0) {
         return { count: 0 };
       }
 
-      // Save only new posts
-      const result = await tx.redditPost.createMany({
+      return await tx.redditPost.createMany({
         data: newPosts
       });
-
-      return result;
     });
 
+    // Return detailed response
     return NextResponse.json({ 
       success: true, 
       postsFound: validPosts.length,
       savedCount: savedPosts.count,
+      requestedCount: totalPostsRequested,
       bySubreddit: Object.fromEntries(
         subreddits.map(subreddit => [
           subreddit,
-          postsToSave.filter(p => p.subreddit.toLowerCase() === subreddit.toLowerCase()).length
+          finalPosts.filter(p => p.subreddit.toLowerCase() === subreddit.toLowerCase()).length
         ])
       )
     });
