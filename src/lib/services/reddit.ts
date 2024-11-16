@@ -19,24 +19,21 @@ async function getSubredditsFromApify(keywords: string[]): Promise<ApifySubreddi
         useApifyProxy: true
       },
       searchCommunities: true,
-      searchPosts: false,
-      searchComments: false,
-      searchUsers: false,
-      includeNSFW: false,
-      time: "all"
     });
 
     const { items = [] } = await apifyClient.dataset(run.defaultDatasetId).listItems();
-    console.log("Raw Apify results:", items);
     
-    const validItems = items.filter(isApifySubredditResponse);
+    const arrayItems = (Array.isArray(items) ? items : []) as unknown[];
     
-    return validItems.filter((item) => 
-      item.dataType === "community" &&
-      item.numberOfMembers >= 1000 &&
-      !item.over18 &&
-      item.description !== undefined
-    );
+    const validItems = arrayItems
+      .filter(isApifySubredditResponse)
+      .filter((item: ApifySubredditResponse) => 
+        item.numberOfMembers >= 1000 &&
+        item.title &&
+        item.url
+      );
+    
+    return validItems;
   } catch (error) {
     console.error("Error fetching from Apify:", error);
     return [];
@@ -76,7 +73,7 @@ export async function findRelevantSubreddits(
     if (cachedResults.length >= 5) {
       return cachedResults.map(result => ({
         ...result,
-        matchReason: result.matchReason || undefined // Convert null to undefined
+        matchReason: result.matchReason || undefined
       }));
     }
 
@@ -91,38 +88,37 @@ export async function findRelevantSubreddits(
 
     const results = await getSubredditsFromApify(product.keywords);
     
-    const subreddits = results.map(item => ({
-      name: item.displayName || item.title.replace(/^r\//, ''),
-      title: item.title,
-      description: item.description || '',
-      memberCount: item.numberOfMembers,
-      url: `https://reddit.com/r/${item.displayName || item.title.replace(/^r\//, '')}`,
-      relevanceScore: calculateRelevanceScore(item, product.keywords),
-      matchReason: `Relevant to: ${product.keywords.slice(0, 3).join(", ")}`,
-      isMonitored: false,
-      productId
-    }))
-    .filter(sub => sub.relevanceScore >= 60)
-    .sort((a, b) => b.relevanceScore - a.relevanceScore)
-    .slice(0, 5);
+    const subreddits = results
+      .map(item => ({
+        name: item.displayName || item.title.replace(/^r\//, ''),
+        title: item.title,
+        description: item.description || '',
+        memberCount: item.numberOfMembers,
+        url: item.url,
+        relevanceScore: calculateRelevanceScore(item, product.keywords),
+        matchReason: `Matched keywords: ${product.keywords.join(', ')}`,
+        isMonitored: false,
+        productId
+      }))
+      .filter(sub => sub.relevanceScore >= 60)
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 5);
 
     if (subreddits.length > 0) {
       await prisma.subredditSuggestion.createMany({
         data: subreddits.map(sub => ({
-          id: sub.id,
           name: sub.name,
           title: sub.title,
           description: sub.description,
           memberCount: sub.memberCount,
           url: sub.url,
           relevanceScore: sub.relevanceScore,
-          matchReason: sub.matchReason || null,
+          matchReason: sub.matchReason,
           isMonitored: sub.isMonitored,
           productId: sub.productId,
           createdAt: new Date(),
           updatedAt: new Date()
-        })),
-        skipDuplicates: true
+        }))
       });
     }
 

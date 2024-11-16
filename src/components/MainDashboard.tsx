@@ -8,13 +8,13 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { CommentBuilder } from "./CommentBuilder";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
-import { RedditPost, SubredditSuggestion } from "@/types/product";
+import { SubredditSuggestion } from "@/types/product";
 import { useToast } from "./ui/use-toast";
 import { motion } from "framer-motion";
 import { RefreshCw, UsersIcon } from "lucide-react";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { MonitoringDialog } from "./MonitoringDialog";
-import { type RedditPost } from '@prisma/client';
+import type { RedditPost, Product } from '@prisma/client';
 import { PostCard } from './PostCard';
 import { PostFilters } from '@/components/PostFilters';
 import Masonry from 'react-masonry-css';
@@ -23,11 +23,19 @@ interface MainDashboardProps {
   productId: string;
 }
 
+// Define the engagement type to match the Prisma schema
+type Engagement = 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
+
+// Update PostWithProduct to exactly match CommentBuilder's expected type
+type PostWithProduct = RedditPost & { 
+  product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+};
+
 export default function MainDashboard({ productId }: MainDashboardProps) {
-  const [posts, setPosts] = useState<RedditPost[]>([]);
+  const [posts, setPosts] = useState<PostWithProduct[]>([]);
   const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPost, setSelectedPost] = useState<RedditPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<PostWithProduct | null>(null);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [filters, setFilters] = useState({
     timeRange: 'all',
@@ -49,14 +57,21 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       if (!response.ok) throw new Error('Failed to fetch posts');
       
       const data = await response.json();
-      setPosts(data);
+      // Transform the data to match PostWithProduct type
+      const postsWithProduct: PostWithProduct[] = data.map((post: RedditPost) => ({
+        ...post,
+        engagement: post.engagement as Engagement, // Type assertion here is safe because we know the values
+        product: {
+          name: currentProduct?.name || '',
+          description: currentProduct?.description || '',
+          keywords: currentProduct?.keywords || [],
+          url: currentProduct?.url || null
+        }
+      }));
+      setPosts(postsWithProduct);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch posts. Please try again.",
-        variant: "destructive"
-      });
+      toast("Failed to fetch posts. Please try again.", 'error');
     } finally {
       setLoading(false);
     }

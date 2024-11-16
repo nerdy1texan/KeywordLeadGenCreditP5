@@ -16,6 +16,15 @@ import { X, Plus, Trash as TrashIcon, Loader2, PencilIcon, Search } from "lucide
 import { SubredditGrid } from './SubredditGrid';
 import { type SubredditSuggestion } from "@/types/product";
 
+interface FormValues {
+  name: string;
+  url: string;
+  description: string;
+  keywords: string[];
+  plans: Plan[];
+  productId?: string;
+}
+
 export default function ProductInfoForm() {
   const [loading, setLoading] = useState(false);
   const [autoFilling, setAutoFilling] = useState(false);
@@ -33,15 +42,15 @@ export default function ProductInfoForm() {
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
   const [isSearchingSubreddits, setIsSearchingSubreddits] = useState(false);
 
-  const formik = useFormik({
+  const formik = useFormik<FormValues>({
     initialValues: {
-      name: "",
-      url: "",
-      description: "",
+      name: '',
+      url: '',
+      description: '',
       keywords: [],
       plans: [],
-      productId: "",
-    } as ProductFormData & { productId?: string },
+      productId: undefined
+    },
     validate: withZodSchema(productSchema),
     onSubmit: async (values) => {
       setLoading(true);
@@ -197,13 +206,14 @@ export default function ProductInfoForm() {
               url: product.url || '',
               description: product.description,
               keywords: product.keywords,
-              plans: product.plans || []
+              plans: product.plans || [],
+              productId: product.id
             });
             setProductId(product.id);
             
             // Load saved subreddits if any
             if (product.monitoredSubreddits?.length > 0) {
-              setSubreddits(product.monitoredSubreddits.map(sub => ({
+              setSubreddits(product.monitoredSubreddits.map((sub: SubredditSuggestion) => ({
                 id: sub.id,
                 name: sub.name,
                 title: sub.title || sub.name,
@@ -456,11 +466,11 @@ export default function ProductInfoForm() {
           </div>
 
           {/* Display existing plans */}
-          {formik.values.plans?.length > 0 && (
+          {(formik.values.plans ?? []).length > 0 && (
             <div className="space-y-4">
               <h4 className="font-medium">Existing Plans</h4>
               <div className="grid gap-4 md:grid-cols-2">
-                {formik.values.plans.map((plan, index) => (
+                {(formik.values.plans ?? []).map((plan, index) => (
                   <div key={index} className="border border-gray-700 rounded-lg p-4">
                     <div className="flex justify-between items-center">
                       <h5 className="font-medium">{plan.name}</h5>
