@@ -96,8 +96,6 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
 
   const handleSaveAndClose = async () => {
     try {
-      console.log("Handling save and close"); // Debug log
-      
       if (!currentReply.trim()) {
         toast({
           title: "Error",
@@ -111,15 +109,24 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
       setIsSaving(true);
       const updatedPost = await saveReply(currentReply);
       
-      if (updatedPost && updatedPost.latestReply === currentReply) {
-        // Ensure state is updated before closing
+      if (updatedPost) {
+        // Update parent component first
+        if (onReplyUpdate) {
+          onReplyUpdate(updatedPost);
+        }
+        
+        // Update local state
         setCurrentReply(updatedPost.latestReply);
         
-        // Add a small delay to ensure state is updated
-        setTimeout(() => {
-          setIsSaving(false);
-          onClose();
-        }, 100);
+        // Close immediately after successful save
+        setIsSaving(false);
+        onClose();
+        
+        toast({
+          title: "Success",
+          description: "Reply saved and closed successfully",
+          duration: 3000,
+        });
       } else {
         setIsSaving(false);
         toast({
