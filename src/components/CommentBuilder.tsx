@@ -102,12 +102,30 @@ export function CommentBuilder({ isOpen, onClose, post }: CommentBuilderProps) {
         return;
       }
 
+      setIsSaving(true);
       const updatedPost = await saveReply(currentReply);
-      if (updatedPost) {
-        onClose();
+      
+      if (updatedPost && updatedPost.latestReply === currentReply) {
+        // Ensure state is updated before closing
+        setCurrentReply(updatedPost.latestReply);
+        
+        // Add a small delay to ensure state is updated
+        setTimeout(() => {
+          setIsSaving(false);
+          onClose();
+        }, 100);
+      } else {
+        setIsSaving(false);
+        toast({
+          title: "Error",
+          description: "Failed to save reply",
+          variant: "destructive",
+          duration: 3000,
+        });
       }
     } catch (error) {
       console.error('Error in handleSaveAndClose:', error);
+      setIsSaving(false);
       toast({
         title: "Error",
         description: "Failed to save reply before closing",
