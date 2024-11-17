@@ -168,23 +168,31 @@ export default function ProductInfoForm() {
   const handleFindSubreddits = async () => {
     try {
       setIsSearchingSubreddits(true);
-      const response = await fetch('/api/reddit/subreddits/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: formik.values.description,
-          keywords: formik.values.keywords
-        })
+      const params = new URLSearchParams({
+        description: formik.values.description,
+        productId: productId
+      });
+      
+      const response = await fetch(`/api/products/subreddits?${params}`, {
+        method: 'GET'
       });
 
       if (!response.ok) {
         throw new Error('Failed to find subreddits');
       }
-
-      const data = await response.json();
-      setSubreddits(data);
+      
+      const newSubreddits = await response.json();
+      if (Array.isArray(newSubreddits)) {
+        setSubreddits(newSubreddits);
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error('Error finding subreddits:', error);
+      notify({ 
+        message: error instanceof Error ? error.message : 'Failed to find relevant subreddits', 
+        type: 'error' 
+      });
     } finally {
       setIsSearchingSubreddits(false);
     }
