@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import { withZodSchema } from "formik-validator-zod";
 import { productSchema } from "@/lib/validation/product";
-import { type ProductFormData, type Plan } from "@/types/product";
+import { type ProductFormData, type Plan, type Product, type SubredditSuggestion } from "@/types/product";
 import LoadingButton from "@/components/LoadingButton";
 import Alert from "@/components/Alert";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Trash as TrashIcon, Loader2, PencilIcon, Search } from "lucide-react";
 import { SubredditGrid } from './SubredditGrid';
-import { type SubredditSuggestion } from "@/types/product";
 
 interface FormValues {
   name: string;
@@ -58,19 +57,18 @@ export default function ProductInfoForm() {
         const response = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ...values,
-            productId: productId
-          }),
+          body: JSON.stringify(values),
         });
 
-        const data = await response.json();
-
+        const productData = await response.json();
+        
         if (!response.ok) {
-          throw new Error(data.error || data.details || "Failed to save product info");
+          throw new Error(productData.error || "Failed to save product info");
         }
 
-        notify({ message: "Product information updated successfully!", type: "success" });
+        notify({ message: "Product information saved successfully!", type: "success" });
+        
+        await findSubreddits(productData);
       } catch (error: any) {
         console.error("Form submission error:", error);
         notify({ 
@@ -293,6 +291,44 @@ export default function ProductInfoForm() {
       );
     } catch (error) {
       console.error('Error toggling subreddit:', error);
+    }
+  };
+
+  const findSubreddits = async (productData: Product) => {
+    try {
+      // Make sure we have a productId
+      if (!productData.id) {
+        console.error('No product ID available');
+        return;
+      }
+
+      setIsLoadingSubreddits(true); // Add loading state
+
+      const response = await fetch(`/api/products/${productData.id}/subreddits`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch subreddits: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setSubreddits(data);
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Error finding subreddits:', error);
+      notify({ 
+        message: 'Failed to find relevant subreddits', 
+        type: 'error' 
+      });
+    } finally {
+      setIsLoadingSubreddits(false); // Clear loading state
     }
   };
 

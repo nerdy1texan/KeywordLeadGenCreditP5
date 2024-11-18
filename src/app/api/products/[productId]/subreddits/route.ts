@@ -1,3 +1,5 @@
+// src/app/api/products/[productId]/subreddits/route.ts
+
 import { withMiddleware } from "@/lib/apiHelper";
 import { prisma } from "@/lib/db";
 import { type NextRequest, NextResponse } from "next/server";
@@ -28,7 +30,6 @@ export const GET = withMiddleware(async (req: NextRequest) => {
       where: { id: productId }
     });
 
-    console.log("Product found:", product ? "yes" : "no");
     if (!product) {
       return NextResponse.json(
         { error: "Product not found" },

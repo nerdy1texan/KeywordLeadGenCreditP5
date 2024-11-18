@@ -231,46 +231,56 @@ export async function upsertProduct(
       throw new Error("User not found");
     }
 
-    // Upsert the product
-    const prismaProduct = await prisma.product.upsert({
-      where: {
-        id: productId || 'dummy-id', // If no productId, use dummy that won't match
-      },
-      update: {
-        name: data.name,
-        url: data.url || null,
-        description: data.description,
-        keywords: data.keywords,
-        // Update plans
-        plans: {
-          deleteMany: {}, // Remove existing plans
-          create: data.plans?.map(plan => ({
-            name: plan.name,
-            price: plan.price,
-            features: plan.features
-          })) || []
-        }
-      },
-      create: {
-        name: data.name,
-        url: data.url || null,
-        description: data.description,
-        keywords: data.keywords,
-        userId: userId,
-        plans: {
-          create: data.plans?.map(plan => ({
-            name: plan.name,
-            price: plan.price,
-            features: plan.features
-          })) || []
-        }
-      },
-      include: {
-        plans: true,
-        monitoredSubreddits: true,
-        redditPosts: true,
-      },
-    });
+    let prismaProduct;
+
+    // If we have a valid productId, update the existing product
+    if (productId && productId.trim()) {
+      prismaProduct = await prisma.product.update({
+        where: { id: productId },
+        data: {
+          name: data.name,
+          url: data.url || null,
+          description: data.description,
+          keywords: data.keywords,
+          plans: {
+            deleteMany: {}, // Remove existing plans
+            create: data.plans?.map(plan => ({
+              name: plan.name,
+              price: plan.price,
+              features: plan.features
+            })) || []
+          }
+        },
+        include: {
+          plans: true,
+          monitoredSubreddits: true,
+          redditPosts: true,
+        },
+      });
+    } else {
+      // If no productId, create a new product
+      prismaProduct = await prisma.product.create({
+        data: {
+          name: data.name,
+          url: data.url || null,
+          description: data.description,
+          keywords: data.keywords,
+          userId: userId,
+          plans: {
+            create: data.plans?.map(plan => ({
+              name: plan.name,
+              price: plan.price,
+              features: plan.features
+            })) || []
+          }
+        },
+        include: {
+          plans: true,
+          monitoredSubreddits: true,
+          redditPosts: true,
+        },
+      });
+    }
 
     return transformPrismaProduct(prismaProduct);
   } catch (error) {
