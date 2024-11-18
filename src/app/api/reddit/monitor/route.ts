@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { withMiddleware } from "@/lib/apiHelper";
 import { prisma } from "@/lib/db";
 import { ApifyClient } from 'apify-client';
@@ -8,49 +9,20 @@ const apifyClient = new ApifyClient({
   token: process.env.APIFY_API_TOKEN,
 });
 
-async function getRedditPosts(subreddit: string, limit: number): Promise<ProcessedRedditPost[]> {
-  try {
-    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
-      startUrls: [{
-        url: `https://www.reddit.com/r/${subreddit.toLowerCase()}/`,
-        method: "GET"
-      }],
-      maxItems: limit * 2,
-      maxPostCount: limit * 2,
-      proxy: {
-        useApifyProxy: true
-      }
-    });
-
-    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+function calculateLeadScore(post: RedditPostData, keywords: string[]): number {
+  let score = 0;
+  
+  keywords.forEach(keyword => {
+    // Check title
+    const titleMatches = (post.title?.toLowerCase() || '').split(keyword.toLowerCase()).length - 1;
+    score += titleMatches * 50; // 50 points per keyword match in title
     
-    return ((items as unknown) as RedditPostData[])
-      .filter((item): item is RedditPostData => 
-        item?.id?.startsWith('t3_') &&
-        typeof item.title === 'string' &&
-        typeof item.communityName === 'string'
-      )
-      .map((post) => ({
-        redditId: post.parsedId || post.id.replace('t3_', ''),
-        title: post.title?.trim() || '',
-        text: post.body?.trim() || '',
-        url: post.url || '',
-        subreddit: post.parsedCommunityName || post.communityName?.replace('r/', ''),
-        author: '',
-        createdAt: new Date(post.createdAt),
-        productId: '',
-        engagement: 'low',
-        fit: 0,
-        authenticity: 0,
-        lead: 0,
-        isFavorited: false,
-        isReplied: false,
-        latestReply: null
-      }));
-  } catch (error) {
-    console.error(`Error in getRedditPosts for ${subreddit}:`, error);
-    return [];
-  }
+    // Check body
+    const bodyMatches = (post.body?.toLowerCase() || '').split(keyword.toLowerCase()).length - 1;
+    score += bodyMatches * 25; // 25 points per keyword match in body
+  });
+
+  return score;
 }
 
 export const POST = withMiddleware(async (req: NextRequest) => {
@@ -60,19 +32,54 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       postsPerSubreddit: number;
       productId: string;
     };
-    
-    const totalPostsRequested = postsPerSubreddit;
-    const postsPerSub = Math.ceil(totalPostsRequested / subreddits.length);
-    
-    // Get posts from each subreddit
-    const allPosts = await Promise.all(
-      subreddits.map(subreddit => getRedditPosts(subreddit, postsPerSub))
-    );
 
-    // Flatten and validate posts
-    const validPosts = allPosts.flat().filter((post): post is ProcessedRedditPost => !!post);
+    // Get subreddit URLs from the database
+    const subredditData = await prisma.subredditSuggestion.findMany({
+      where: {
+        name: {
+          in: subreddits
+        },
+        productId: productId
+      },
+      select: {
+        url: true
+      }
+    });
+
+    // Calculate total posts needed while respecting Apify's minimum
+    const totalPosts = Math.max(10, postsPerSubreddit);
+
+    // Create startUrls using the actual URLs from the database
+    const startUrls = subredditData.map(subreddit => ({
+      url: subreddit.url.replace('www.reddit.com', 'old.reddit.com') + 'new/',
+      method: "GET"
+    }));
+
+    console.log("Starting Apify run with URLs:", startUrls);
+
+    // Single Apify run with correct parameters
+    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
+      startUrls,
+      maxItems: totalPosts * subreddits.length,
+      maxPostCount: totalPosts * subreddits.length,
+      proxy: {
+        useApifyProxy: true,
+        apifyProxyGroups: ["RESIDENTIAL"]
+      },
+      skipComments: true,
+      skipUserPosts: false,
+      skipCommunity: true,
+      debugLog: true
+    });
+
+    console.log("Apify run started:", run.id);
+
+    // Wait for and get results
+    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
     
-    // Get product for scoring
+    console.log("Raw Apify results:", JSON.stringify(items, null, 2));
+
+    // Get product for keyword filtering
     const product = await prisma.product.findUnique({
       where: { id: productId },
       select: { keywords: true }
@@ -82,76 +89,69 @@ export const POST = withMiddleware(async (req: NextRequest) => {
       throw new Error("Product not found");
     }
 
-    // Score posts
-    const scoredPosts = validPosts.map(post => {
-      const matchedKeywords = product.keywords.filter(keyword =>
-        post.title.toLowerCase().includes(keyword.toLowerCase()) ||
-        post.text.toLowerCase().includes(keyword.toLowerCase())
-      );
+    // Process and validate posts
+    const validPosts = (items as unknown[]).filter((item): item is RedditPostData => 
+      item !== null &&
+      typeof item === 'object' &&
+      'id' in item &&
+      'title' in item &&
+      'communityName' in item
+    );
 
-      return {
-        ...post,
-        productId,
-        lead: matchedKeywords.length * 25
-      };
-    });
+    console.log("Valid posts found:", validPosts.length);
 
-    // Group by subreddit and take top posts
-    const postsToSave = subreddits.reduce<ProcessedRedditPost[]>((acc, subreddit) => {
-      const subredditPosts = scoredPosts
-        .filter(post => post.subreddit.toLowerCase() === subreddit.toLowerCase())
-        .sort((a, b) => b.lead - a.lead)
-        .slice(0, postsPerSub);
-      
-      return [...acc, ...subredditPosts];
-    }, []);
+    // Create processed posts
+    const processedPosts = validPosts.map((post): ProcessedRedditPost => ({
+      redditId: post.parsedId || post.id.replace('t3_', ''),
+      title: post.title?.trim() || '',
+      text: post.body?.trim() || '',
+      url: post.url || '',
+      subreddit: post.parsedCommunityName || post.communityName?.replace('r/', ''),
+      author: post.author || '',
+      createdAt: new Date(post.createdAt),
+      productId,
+      engagement: 'unseen',
+      fit: 0,
+      authenticity: 0,
+      lead: calculateLeadScore(post, product.keywords),
+      isFavorited: false,
+      isReplied: false,
+      latestReply: null
+    }));
 
-    // Ensure we have exactly the requested number of posts
-    const finalPosts = postsToSave.slice(0, totalPostsRequested);
+    // Sort by lead score and take top posts
+    const scoredPosts = processedPosts
+      .sort((a, b) => b.lead - a.lead)
+      .slice(0, totalPosts);
+
+    console.log("Final scored posts:", scoredPosts.length);
 
     // Save posts to database
-    const savedPosts = await prisma.$transaction(async (tx) => {
-      const existingPosts = await tx.redditPost.findMany({
-        where: {
-          redditId: {
-            in: finalPosts.map(post => post.redditId)
+    if (scoredPosts.length > 0) {
+      for (const post of scoredPosts) {
+        try {
+          await prisma.redditPost.create({
+            data: post
+          });
+        } catch (error) {
+          // Ignore duplicate key errors
+          if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) {
+            throw error;
           }
-        },
-        select: {
-          redditId: true
         }
-      });
-
-      const existingIds = new Set(existingPosts.map(p => p.redditId));
-      const newPosts = finalPosts.filter(post => !existingIds.has(post.redditId));
-
-      if (newPosts.length === 0) {
-        return { count: 0 };
       }
+    }
 
-      return await tx.redditPost.createMany({
-        data: newPosts
-      });
-    });
-
-    return NextResponse.json({ 
-      success: true, 
-      postsFound: validPosts.length,
-      savedCount: savedPosts.count,
-      requestedCount: totalPostsRequested,
-      bySubreddit: Object.fromEntries(
-        subreddits.map(subreddit => [
-          subreddit,
-          finalPosts.filter(p => p.subreddit.toLowerCase() === subreddit.toLowerCase()).length
-        ])
-      )
+    return NextResponse.json({
+      success: true,
+      message: `Processed ${scoredPosts.length} posts`
     });
 
   } catch (error) {
-    console.error('Monitoring error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Unknown error" }, 
-      { status: 500 }
-    );
+    console.error("Reddit monitoring error:", error);
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    }, { status: 500 });
   }
 });
