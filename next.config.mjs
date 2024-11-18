@@ -9,8 +9,8 @@ await import("./src/env.mjs");
 const config = {
   reactStrictMode: true,
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: [],
+    missingSuspenseWithCSRBailout: true,
   },
   images: {
     domains: [
@@ -41,6 +41,9 @@ const config = {
   },
   output: 'standalone',
   poweredByHeader: false,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
 };
 
 import nextra from "nextra";
