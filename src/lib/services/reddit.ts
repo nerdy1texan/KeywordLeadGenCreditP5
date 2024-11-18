@@ -41,18 +41,38 @@ async function getSubredditsFromApify(keywords: string[]): Promise<ApifySubreddi
 }
 
 function calculateRelevanceScore(item: ApifySubredditResponse, keywords: string[]): number {
-  let score = 50;
+  let score = 65;
   
   const content = `${item.title} ${item.description || ''}`.toLowerCase();
   
   keywords.forEach(keyword => {
-    if (content.includes(keyword.toLowerCase())) score += 10;
+    const keywordParts = keyword.toLowerCase().split(' ');
+    if (keywordParts.some(part => content.includes(part))) {
+      score += 15;
+    }
+    if (content.includes(keyword.toLowerCase())) {
+      score += 5;
+    }
   });
   
   const members = item.numberOfMembers;
-  if (members > 100000) score += 20;
-  else if (members > 10000) score += 10;
-  else if (members > 1000) score += 5;
+  if (members > 100000) score += 25;
+  else if (members > 10000) score += 15;
+  else if (members > 1000) score += 10;
+  
+  if (content.includes('discuss') || 
+      content.includes('help') || 
+      content.includes('question') ||
+      content.includes('advice')) {
+    score += 10;
+  }
+  
+  if (keywords.some(keyword => 
+    keyword.toLowerCase().split(' ').some(part => 
+      content.includes(part)
+    ))) {
+    score = Math.max(score, 70);
+  }
   
   return Math.min(100, score);
 }
