@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   });
 
   if (!latestProduct) {
-    redirect('/dashboard/products/new');
+    redirect('/dashboard/products');
   }
 
   return <MainDashboard productId={latestProduct.id} />;
