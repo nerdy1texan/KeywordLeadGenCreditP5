@@ -8,27 +8,22 @@ await import("./src/env.mjs");
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
-  /**
-   * If you have `experimental: { appDir: true }` set, then you must comment the below `i18n` config
-   * out.
-   *
-   * @see https://github.com/vercel/next.js/issues/41980
-   */
-  experimental: {},
+  experimental: {
+    appDir: true,
+    serverComponentsExternalPackages: [],
+  },
   images: {
     domains: [
       "avatars.githubusercontent.com",
       "lh3.googleusercontent.com",
       "daisyui.com",
       "localhost",
-      // "demo.nextsaas.live",
-      // "nextsaas.live",
+      "keywordleadgen.com",
+      "www.keywordleadgen.com"
     ],
   },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   async redirects() {
     return [
@@ -44,6 +39,8 @@ const config = {
       },
     ];
   },
+  output: 'standalone',
+  poweredByHeader: false,
 };
 
 import nextra from "nextra";
