@@ -17,21 +17,23 @@ export function PostFilters({
   onTimeRangeChange
 }: PostFiltersProps) {
   return (
-    <div className="flex gap-4 mb-6">
-      <div className="flex gap-2">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-wrap gap-2">
         <Button
-          variant={selectedSubreddit === 'all' ? 'default' : 'outline'}
+          variant={selectedSubreddit === 'all' ? 'default' : 'secondary'}
+          size="sm"
           onClick={() => onSubredditChange('all')}
-          className="whitespace-nowrap"
+          className="rounded-full"
         >
           All Communities
         </Button>
         {subreddits.map((subreddit) => (
           <Button
             key={subreddit}
-            variant={selectedSubreddit === subreddit ? 'default' : 'outline'}
+            variant={selectedSubreddit === subreddit ? 'default' : 'secondary'}
+            size="sm"
             onClick={() => onSubredditChange(subreddit)}
-            className="whitespace-nowrap"
+            className="rounded-full"
           >
             r/{subreddit}
           </Button>
@@ -40,7 +42,7 @@ export function PostFilters({
 
       <Select value={timeRange} onValueChange={onTimeRangeChange}>
         <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select time range" />
+          <SelectValue placeholder="Past 24 hours" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="day">Past 24 hours</SelectItem>

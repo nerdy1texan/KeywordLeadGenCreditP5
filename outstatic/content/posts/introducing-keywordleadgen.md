@@ -1,16 +1,16 @@
 ---
-title: 'Introducing KeywordLeadGen - The Ultimate AI-Powered Reddit Lead Generation Platform'
-status: 'published'
+title: "Introducing KeywordLeadGen - The Ultimate AI-Powered Reddit Lead Generation Platform"
+status: "published"
 author:
-  name: 'Maulin'
-  picture: 'https://avatars.githubusercontent.com/u/109623919?v=4'
-slug: 'introducing-keywordleadgen'
-description: 'Discover KeywordLeadGen, the revolutionary AI-powered platform that transforms Reddit's 57M+ daily active users into your customer base through intelligent lead generation and engagement automation.'
-coverImage: '/images/blog/introducing-keywordleadgen.jpg'
-tags: 
+  name: "Maulin"
+  picture: "https://avatars.githubusercontent.com/u/109623919?v=4"
+slug: "introducing-keywordleadgen"
+description: "Discover KeywordLeadGen, the revolutionary AI-powered platform that transforms Reddit's 57M+ daily active users into your customer base through intelligent lead generation and engagement automation."
+coverImage: "/images/blog/introducing-keywordleadgen.jpg"
+tags:
   - label: "Release"
     value: "release"
-publishedAt: '2024-09-09T21:45:42.465346Z'
+publishedAt: "2024-09-09T21:45:42.465346Z"
 ---
 
 # Introducing KeywordLeadGen - Transform Reddit into Your Lead Generation Powerhouse

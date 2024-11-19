@@ -288,39 +288,13 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
 
           {/* Post Filtering */}
           <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg p-4 rounded-lg border border-gray-800/50">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={filters.subreddit === 'all' ? 'default' : 'outline'}
-                  onClick={() => handleSubredditChange('all')}
-                  className="whitespace-nowrap"
-                >
-                  All Communities
-                </Button>
-                {monitoredSubreddits.map(sub => (
-                  <Button
-                    key={sub.name}
-                    variant={filters.subreddit === sub.name ? 'default' : 'outline'}
-                    onClick={() => handleSubredditChange(sub.name)}
-                    className="whitespace-nowrap"
-                  >
-                    r/{sub.name}
-                  </Button>
-                ))}
-              </div>
-              
-              <Select value={filters.timeRange} onValueChange={handleTimeRangeChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Time Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="day">Past Day</SelectItem>
-                  <SelectItem value="week">Past Week</SelectItem>
-                  <SelectItem value="month">Past Month</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <PostFilters 
+              subreddits={monitoredSubreddits.map(sub => sub.name)}
+              selectedSubreddit={filters.subreddit}
+              timeRange={filters.timeRange}
+              onSubredditChange={handleSubredditChange}
+              onTimeRangeChange={handleTimeRangeChange}
+            />
           </div>
 
           {/* Posts Masonry Grid */}
