@@ -14,11 +14,11 @@
       },
       "collection": "pages",
       "coverImage": "",
-      "description": "Privacy Policy of LeadNimbus",
+      "description": "KeywordLeadGen's Privacy Policy - Protecting Your Data While Revolutionizing Lead Generation with AI",
       "publishedAt": "2024-03-10T02:43:50.682Z",
       "slug": "privacy-policy",
       "status": "published",
-      "title": "Privacy Policy"
+      "title": "Privacy Policy | KeywordLeadGen - AI-Powered Lead Generation Platform"
     },
     {
       "__outstatic": {
@@ -32,17 +32,17 @@
       },
       "collection": "pages",
       "coverImage": "",
-      "description": "Terms and Conditions for LeadNimbus",
+      "description": "Terms and Conditions for KeywordLeadGen - Your Trusted Partner in AI-Driven Social Media Lead Generation",
       "publishedAt": "2024-03-10T02:53:21.547Z",
       "slug": "terms-and-conditions",
       "status": "published",
-      "title": "Terms and Conditions"
+      "title": "Terms and Conditions | KeywordLeadGen - Smart Lead Generation Solution"
     },
     {
       "__outstatic": {
         "commit": "1c7938e7508ec029b2858606b41e7f515571f0cb",
         "hash": "3867228085",
-        "path": "outstatic/content/posts/introducing-leadnimbus.md"
+        "path": "outstatic/content/posts/introducing-keywordleadgen.md"
       },
       "author": {
         "name": "Maulin",
@@ -50,17 +50,33 @@
       },
       "collection": "posts",
       "coverImage": "",
-      "description": "",
+      "description": "Transform your lead generation with KeywordLeadGen - The revolutionary AI-powered platform that automatically discovers and engages with potential customers on Reddit. Featuring intelligent subreddit discovery, real-time post monitoring, and AI-driven engagement scoring to help businesses find and convert high-quality leads effortlessly.",
       "publishedAt": "2024-09-09T05:42:33.115Z",
-      "slug": "introducing-leadnimbus-cms",
+      "slug": "introducing-keywordleadgen-ai-lead-generation",
       "status": "published",
       "tags": [
         {
           "label": "Release",
           "value": "release"
+        },
+        {
+          "label": "AI",
+          "value": "ai"
+        },
+        {
+          "label": "Lead Generation",
+          "value": "lead-generation"
+        },
+        {
+          "label": "Social Media",
+          "value": "social-media"
+        },
+        {
+          "label": "Marketing",
+          "value": "marketing"
         }
       ],
-      "title": "Introducing LeadNimbus Lead Generation and Social Media Scraping Platform"
+      "title": "Introducing KeywordLeadGen: Revolutionary AI-Powered Lead Generation Platform for Modern Businesses"
     }
   ]
 }

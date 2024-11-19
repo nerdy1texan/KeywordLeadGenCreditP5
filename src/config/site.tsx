@@ -2,38 +2,39 @@ import { ENV } from "@/env.mjs";
 import { type ReactNode } from "react";
 
 export const SITE = {
-  name: "LeadNimbus",
-  title: "LeadNimbus - AI-Driven Lead Generation and Social Media Scraper",
+  name: "KeywordLeadGen",
+  title: "KeywordLeadGen - AI-Powered Reddit Lead Generation Platform",
   description:
-    "LeadNimbus is a powerful AI-driven platform for lead generation, social media scraping, keyword research, and hashtag generation. Automate lead capture, track trends, and export data seamlessly.",
+    "KeywordLeadGen is an intelligent AI platform that helps businesses discover and convert high-intent leads from Reddit. Automate subreddit discovery, track discussions, and engage with potential customers authentically.",
   url: ENV.NEXT_PUBLIC_APP_URL,
   address: "",
-  email: "hello@leadnimbus.com",
-  sender: "LeadNimbus <hello@leadnimbus.com>",
-  creator: "LeadNimbus Team",
+  email: "hello@keywordleadgen.com",
+  sender: "KeywordLeadGen <hello@keywordleadgen.com>",
+  creator: "KeywordLeadGen Team",
   githubLink: "https://github.com/nerdy1texan",
-  xLink: "https://twitter.com/LeadNimbus",
-  discordLink: "https://discord.gg/LeadNimbus",
+  xLink: "https://twitter.com/KeywordLeadGen",
+  discordLink: "https://discord.gg/KeywordLeadGen",
   keywords: [
-    "AI lead generation",
-    "social media scraper",
-    "Facebook data scraping",
-    "Twitter (X) email scraping",
-    "AI keyword research",
-    "hashtag generator",
+    "Reddit lead generation",
+    "AI lead discovery",
+    "subreddit analysis",
+    "Reddit marketing tool",
+    "AI engagement assistant",
+    "Reddit lead finder",
     "automated lead generation",
-    "lead generation software",
-    "real-time data scraping",
+    "Reddit sales prospecting",
+    "real-time discussion monitoring",
     "lead tracking tool",
     "AI-powered lead generation",
-    "email scraper",
-    "Instagram scraper",
-    "Reddit scraper",
-    "AI social media scraper",
-    "CSV lead export",
-    "social media analytics",
+    "Reddit intent detection",
+    "subreddit intelligence",
+    "Reddit business leads",
+    "AI Reddit analyzer",
+    "lead export",
+    "Reddit analytics",
     "AI reply generator",
-    "lead generation platform",
+    "Reddit engagement platform",
+    "B2B Reddit leads"
   ],
 };
 
@@ -271,16 +272,16 @@ const allSKUs: SKU[] = [
     for: "Startups and small businesses",
     type: "PLAN",
     product: {
-      description: "Affordable plan for getting started with AI-driven lead generation",
+      description: "Perfect for businesses starting their Reddit lead generation journey",
     },
     features: [
-      "AI Lead Identification",
+      "AI Subreddit Discovery",
+      "Intent Detection",
       "Lead Scoring",
-      "Data Export",
-      "API Access",
+      "Basic Analytics",
       "Real-Time Notifications",
-      "User and Role Management",
-      "Customizable Lead Filters",
+      "5 Tracked Subreddits",
+      "CSV Export"
     ],
     prices: [
       {
@@ -297,13 +298,16 @@ const allSKUs: SKU[] = [
     for: "Growing businesses and agencies",
     type: "PLAN",
     product: {
-      description: "Advanced plan with AI-driven personalization and priority support",
+      description: "Advanced Reddit lead generation with AI-powered engagement tools",
     },
     features: [
       "Everything in Launch Plan",
-      "AI-Driven Personalized Replies",
+      "AI Reply Assistant",
+      "Unlimited Subreddits",
+      "Competitor Tracking",
       "Priority Support",
-      "More Features Coming...",
+      "Advanced Analytics",
+      "Custom Alerts"
     ],
     prices: [
       {

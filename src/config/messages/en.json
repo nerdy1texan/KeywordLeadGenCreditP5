@@ -43,178 +43,302 @@
     "About Us": "About Us"
   },
   "Hero": {
-    "title": "Welcome to LeadNimbus",
-    "titleHighlight": " Your AI-Driven Lead Generation Platform",
-    "cta": "Join <span class='font-bold'>100+ Businesses</span> boosting their lead generation",
-    "promo": "🎁 Use LAUNCHPROMO to get $10 OFF <span class='highlight-underline font-bold'>90 left</span>",
-    "subtitle": "LeadNimbus is an AI-powered tool to automate lead generation and data scraping from social media and public platforms.",
-    "leftButton": "Start Scraping Today",
-    "rightButton": "Learn More About LeadNimbus"
+    "title": "Welcome to KeywordLeadGen",
+    "titleHighlight": "Your AI-Powered Reddit Lead Generation Platform",
+    "cta": "Join <span class='font-bold'>100+ Growth-Focused Businesses</span> discovering high-intent leads on Reddit",
+    "promo": "🎁 Use LAUNCH2024 to get $10 OFF <span class='highlight-underline font-bold'>90 spots left</span>",
+    "subtitle": "Transform Reddit's 57M+ daily active users into your customer base. Our AI automatically discovers relevant discussions, identifies purchase intent, and helps you engage authentically to generate qualified leads from the world's largest discussion platform.",
+    "leftButton": "Start Finding Reddit Leads",
+    "rightButton": "See How It Works"
   },
   "FeatureZigzag": {
-    "title": "<h2 class='h2 mb-4'>Generate Leads in <span class='h3 text-gray-400' style='text-decoration-line: line-through;'>days</span> <span class='highlight'>minutes</span></h2>",
-    "description": "<p class='text-xl text-gray-500'>Boost your lead generation with our AI scrapers. <span class='highlight-underline'>Save <b>100+</b> hours</span> by automating the collection of leads, emails, and public data from social platforms, all in one easy-to-use tool.</p>",
+    "title": "<h2 class='h2 mb-4'>Find Reddit Leads in <span class='h3 text-gray-400' style='text-decoration-line: line-through;'>days</span> <span class='highlight'>minutes</span></h2>",
+    "description": "<p class='text-xl text-gray-500'>Unlock Reddit's massive lead generation potential. <span class='highlight-underline'>Save <b>100+</b> hours</span> with AI-powered subreddit discovery, lead monitoring, and authentic engagement automation.</p>",
     "features": [
       {
-        "title": "AI-Powered Scraping",
-        "description": "Instantly gather actionable data with AI-driven scrapers.",
+        "title": "AI-Powered Reddit Analysis",
+        "description": "Let our AI find your perfect audience on Reddit.",
         "highlights": [
-          "Facebook public information scraping",
-          "Email scraping from Twitter (X) and other platforms",
-          "Hashtag and keyword generation for trending topics",
-          "Lead tracking and monitoring tools",
-          "Custom lead reports in downloadable CSV format"
+          "Intelligent product and keyword analysis",
+          "Real-time subreddit relevance scoring",
+          "Automatic lead qualification",
+          "Custom targeting parameters",
+          "Comprehensive Reddit analytics"
         ]
       },
       {
-        "title": "Automated Lead Generation",
-        "description": "Generate leads faster and more efficiently with automation.",
+        "title": "Smart Lead Discovery",
+        "description": "Never miss a potential customer on Reddit again.",
         "highlights": [
-          "Automatically scrape social media pages",
-          "Real-time data collection and updates",
-          "Keyword and hashtag analysis",
-          "Comprehensive lead generation reports"
+          "24/7 discussion monitoring",
+          "AI-powered intent detection",
+          "Real-time lead alerts",
+          "Advanced filtering system",
+          "Lead scoring and prioritization"
         ]
       },
       {
-        "title": "Seamless Integration & Export",
-        "description": "Download your leads easily and integrate them into your CRM.",
+        "title": "Intelligent Engagement Assistant",
+        "description": "Convert discussions into customers naturally.",
         "highlights": [
-          "Export leads in CSV format",
-          "Integrate seamlessly with existing CRM and marketing tools",
-          "Detailed analytics and insights for each scrape",
-          "Optimized for marketing and sales teams"
+          "GPT-4 powered response generation",
+          "Context-aware reply suggestions",
+          "Tone and style customization",
+          "Multi-thread engagement tracking",
+          "Performance analytics"
         ]
       }
     ]
   },
   "FeatureGrid": {
-    "title": "LeadNimbus Features",
-    "description": "LeadNimbus is packed with advanced tools designed to help you generate leads, scrape data, and track performance across multiple platforms. Here’s a look at some of the powerful features at your disposal.",
+    "title": "Transform Your Reddit Presence",
+    "description": "Everything you need to turn Reddit's massive user base into your customer acquisition engine. Our AI-powered platform helps you find, engage, and convert high-intent leads from relevant subreddits.",
     "features": [
       {
-        "title": "Facebook Scraper",
-        "highlight": "Scrape public data from Facebook pages, profiles, and groups in seconds."
+        "title": "Subreddit Intelligence",
+        "highlight": "AI automatically discovers and ranks subreddits where your potential customers are already active."
       },
       {
-        "title": "Twitter (X) Email Scraper",
-        "highlight": "Extract email addresses and leads from Twitter (X) with advanced AI tools."
+        "title": "24/7 Lead Monitoring",
+        "highlight": "Never miss a sales opportunity with automated monitoring across multiple subreddits."
       },
       {
-        "title": "Hashtag & Keyword Generator",
-        "highlight": "Generate relevant hashtags and keywords to optimize your campaigns and content."
+        "title": "Intent Detection AI",
+        "highlight": "Automatically identify and score high-intent posts from potential customers using advanced natural language processing."
       },
       {
-        "title": "Email Scraper",
-        "highlight": "Extract and verify emails from social media platforms for targeted outreach."
+        "title": "Smart Reply Assistant",
+        "highlight": "Generate authentic, contextual responses that drive engagement and conversions while maintaining Reddit etiquette."
       },
       {
-        "title": "Reddit Scraper",
-        "highlight": "Scrape data from Reddit threads and communities to discover leads and content trends."
+        "title": "Engagement Analytics",
+        "highlight": "Track your Reddit presence, measure response rates, and optimize your lead generation strategy with detailed metrics."
       },
       {
-        "title": "Instagram Scraper",
-        "highlight": "Collect public data from Instagram profiles and posts for lead generation and market analysis."
+        "title": "Competitor Tracking",
+        "highlight": "Monitor competitor mentions, analyze their strategies, and identify new opportunity spaces in relevant subreddits."
       },
       {
-        "title": "Lead Tracker",
-        "highlight": "Monitor leads, track engagement, and follow up with ease using our built-in tools."
+        "title": "Multi-Account Management",
+        "highlight": "Manage multiple products and subreddits from a single dashboard with role-based access control."
       },
       {
-        "title": "Real-Time Updates",
-        "highlight": "Get real-time data from social media scraping for up-to-the-minute insights."
+        "title": "Lead Export & CRM Integration",
+        "highlight": "Export qualified leads directly to popular CRM platforms including Salesforce, HubSpot, and more."
       },
       {
-        "title": "CSV Export",
-        "highlight": "Download scraped data and leads in CSV format for easy integration into CRM systems."
+        "title": "Keyword Trend Analysis",
+        "highlight": "Track trending topics and keywords in your target subreddits to optimize your engagement strategy."
       },
       {
-        "title": "Custom Lead Reports",
-        "highlight": "Generate tailored reports that provide deep insights into your lead generation campaigns."
+        "title": "Custom Alert System",
+        "highlight": "Set up personalized alerts for specific keywords, phrases, or user activities that matter to your business."
       },
       {
-        "title": "AI Reply Generator",
-        "highlight": "Automatically generate smart, AI-driven replies to engage your leads and save time."
+        "title": "Sentiment Analysis",
+        "highlight": "Understand the sentiment behind posts and comments to engage with the right prospects at the right time."
       },
       {
-        "title": "Social Media Tracker",
-        "highlight": "Track and analyze your performance across social platforms, including engagement metrics and lead conversions."
+        "title": "Performance Reports",
+        "highlight": "Generate comprehensive reports on your Reddit lead generation efforts with actionable insights and ROI metrics."
       }
     ]
   },
   "Steps": {
-    "title": "How LeadNimbus Works",
-    "description": "Lead generation has never been easier. Here’s how to start generating leads in three simple steps.",
+    "title": "Start Converting Reddit Users Into Customers",
+    "description": "Three simple steps to transform your Reddit presence into a lead generation powerhouse.",
     "steps": [
       {
-        "title": "Choose a Public Page",
-        "description": "Select a public social media page or profile you want to scrape data from."
+        "title": "Add Your Product",
+        "description": "Input your product details and let our AI find your perfect Reddit audience."
       },
       {
-        "title": "Run the AI Scraper",
-        "description": "Our AI scrapes public information, emails, and lead data quickly and efficiently."
+        "title": "Monitor Discussions",
+        "description": "Our AI automatically tracks relevant conversations across targeted subreddits."
       },
       {
-        "title": "Download Your Leads",
-        "description": "Get your results in a downloadable CSV format, ready for use in your marketing and sales efforts."
+        "title": "Engage and Convert",
+        "description": "Use our AI Reply Assistant to turn discussions into customer relationships."
       }
     ]
   },
   "Testimonials": {
-    "title": "100+ Businesses Trust LeadNimbus",
-    "description": "Here’s what our users have to say about LeadNimbus."
+    "title": "100+ Businesses Trust KeywordLeadGen",
+    "description": "Here’s what our users have to say about KeywordLeadGen.",
+    "testimonials": [
+      {
+        "name": "Sarah Johnson",
+        "role": "Marketing Director",
+        "company": "TechStart Inc.",
+        "image": "/testimonials/sarah.jpg",
+        "text": "KeywordLeadGen transformed our Reddit strategy. We've generated over 200 qualified leads in just two months, with a 45% conversion rate. The AI-powered subreddit discovery is a game-changer!"
+      },
+      {
+        "name": "David Chen",
+        "role": "Growth Lead",
+        "company": "SaaS Solutions",
+        "image": "/testimonials/david.jpg",
+        "text": "The AI Reply Assistant saves us hours daily. It helps us engage authentically with potential customers across multiple subreddits. Our customer acquisition cost has dropped by 60%."
+      },
+      {
+        "name": "Emily Rodriguez",
+        "role": "Founder",
+        "company": "Digital Nomad Tools",
+        "image": "/testimonials/emily.jpg",
+        "text": "As a solo founder, KeywordLeadGen has been invaluable. It's like having a full-time Reddit marketing team. The lead quality is exceptional, and the automation is seamless."
+      }
+    ]
   },
   "Pricing": {
     "title": "Start Scraping Leads Today and Maximize Your ROI",
-    "description": "🎁 Use LAUNCHPROMO to get $10 OFF <span class='highlight-underline font-bold'>90 left</span>"
+    "description": "Choose the perfect plan to supercharge your Reddit lead generation.",
+    "plans": [
+      {
+        "name": "Starter",
+        "price": "49",
+        "billing": "per month",
+        "description": "Perfect for small businesses starting with Reddit lead generation.",
+        "features": [
+          "Monitor up to 5 subreddits",
+          "100 leads per month",
+          "Basic AI reply suggestions",
+          "Email support",
+          "Basic analytics"
+        ],
+        "cta": "Start Free Trial"
+      },
+      {
+        "name": "Professional",
+        "price": "99",
+        "billing": "per month",
+        "description": "Ideal for growing businesses serious about Reddit marketing.",
+        "features": [
+          "Monitor up to 15 subreddits",
+          "500 leads per month",
+          "Advanced AI reply assistant",
+          "Priority support",
+          "Advanced analytics",
+          "Custom keyword tracking",
+          "Lead scoring",
+          "Export capabilities"
+        ],
+        "cta": "Start Free Trial",
+        "highlight": "Most Popular"
+      },
+      {
+        "name": "Enterprise",
+        "price": "249",
+        "billing": "per month",
+        "description": "For businesses wanting to maximize their Reddit presence.",
+        "features": [
+          "Unlimited subreddit monitoring",
+          "Unlimited leads",
+          "Premium AI reply assistant",
+          "24/7 priority support",
+          "Custom analytics dashboard",
+          "API access",
+          "Advanced lead scoring",
+          "Team collaboration",
+          "Custom integration",
+          "Dedicated account manager"
+        ],
+        "cta": "Contact Sales"
+      }
+    ],
+    "addons": {
+      "title": "Add-ons",
+      "description": "Enhance your plan with these powerful features.",
+      "items": [
+        {
+          "name": "Additional Subreddits",
+          "price": "10",
+          "billing": "per subreddit/month"
+        },
+        {
+          "name": "API Access",
+          "price": "49",
+          "billing": "per month"
+        },
+        {
+          "name": "Custom Integration",
+          "price": "99",
+          "billing": "per month"
+        }
+      ]
+    },
+    "faq": {
+      "title": "Pricing FAQ",
+      "items": [
+        {
+          "q": "Can I change plans anytime?",
+          "a": "Yes, you can upgrade or downgrade your plan at any time. Changes take effect on your next billing cycle."
+        },
+        {
+          "q": "Is there a free trial?",
+          "a": "Yes, we offer a 14-day free trial on all plans so you can test the full capabilities of KeywordLeadGen."
+        },
+        {
+          "q": "What payment methods do you accept?",
+          "a": "We accept all major credit cards and PayPal. Enterprise customers can also pay by invoice."
+        },
+        {
+          "q": "Do you offer refunds?",
+          "a": "Yes, we offer a 30-day money-back guarantee if you're not satisfied with KeywordLeadGen."
+        }
+      ]
+    }
   },
   "PlanCard": {
     "yourCurrentPlan": "Your Current Plan",
     "choosePlan": "Choose Your Plan",
-    "mostPopular": "Best Value"
+    "mostPopular": "Most Popular",
+    "startTrial": "Start Free Trial",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade Plan",
+    "downgrade": "Downgrade Plan"
   },
   "Faqs": {
     "title": "Frequently Asked Questions",
-    "description": "Got more questions? Connect with us on <a class='text-primary font-bold' href='https://facebook.com/leadnimbus'>Facebook</a>",
+    "description": "Got more questions? Connect with us on <a class='text-primary font-bold' href='https://facebook.com/keywordleadgen'>Facebook</a>",
     "faqs": [
       {
-        "q": "What is LeadNimbus?",
-        "a": "LeadNimbus is an AI-powered platform designed to help businesses scrape social media for leads, gather public data, and extract emails, all in a seamless and efficient way."
+        "q": "What is KeywordLeadGen?",
+        "a": "KeywordLeadGen is an AI-powered platform specifically designed to help businesses generate leads from Reddit. Our platform automatically discovers relevant discussions, identifies high-intent prospects, and helps you engage authentically to convert Redditors into customers."
       },
       {
-        "q": "How does LeadNimbus work?",
-        "a": "LeadNimbus uses advanced AI scrapers to collect public data, emails, and leads from platforms like Facebook and Twitter (X). Simply choose the page or profile, run the scraper, and export the data in CSV format."
+        "q": "How does KeywordLeadGen work?",
+        "a": "KeywordLeadGen uses advanced AI to monitor relevant subreddits 24/7, analyze user intent, and identify sales opportunities. You'll receive real-time alerts for high-intent discussions, and our AI assistant helps you engage authentically to convert prospects into leads."
       },
       {
-        "q": "What do I get with LeadNimbus?",
-        "a": "You get access to AI-driven scrapers for Facebook, Twitter (X), and other platforms. LeadNimbus also includes email extraction tools, keyword and hashtag generators, and the ability to download your data in CSV format for easy integration."
+        "q": "What features do I get with KeywordLeadGen?",
+        "a": "You get access to our AI-powered subreddit discovery, intent detection, 24/7 discussion monitoring, smart reply assistant, lead scoring, and comprehensive analytics. Plus, you can export qualified leads directly to your CRM system."
       },
       {
-        "q": "Can I customize LeadNimbus for my business?",
-        "a": "Yes, LeadNimbus allows you to customize the lead generation and scraping tools to fit your business needs. Create custom reports, generate targeted leads, and export data directly into your CRM."
+        "q": "Can I customize KeywordLeadGen for my specific business?",
+        "a": "Absolutely! KeywordLeadGen adapts to your business needs with custom keyword tracking, personalized intent filters, and tailored response templates. You can track specific subreddits, monitor competitor mentions, and customize lead scoring criteria."
       },
       {
-        "q": "How often is LeadNimbus updated?",
-        "a": "LeadNimbus is constantly updated with new features based on user feedback. We regularly improve our tools to ensure the best experience for your lead generation efforts."
+        "q": "How often is KeywordLeadGen updated?",
+        "a": "We continuously improve KeywordLeadGen with weekly feature updates based on user feedback and Reddit's evolving landscape. Our AI models are regularly trained on new data to ensure the highest accuracy in lead detection and engagement suggestions."
       }
     ]
   },
   "Waitlist": {
     "title": "Waitlist",
     "description": "Join the waitlist and get $100 OFF your first 90 days.",
-    "tag": "LeadNimbus <span class='mx-1 text-primary'>·</span> Coming Soon",
+    "tag": "KeywordLeadGen <span class='mx-1 text-primary'>·</span> Coming Soon",
     "cta": "<span class='font-medium text-gray-700 dark:text-gray-200 underline'>100+</span> people have already signed up."
   },
   "AboutUs": {
-    "title": "About LeadNimbus",
+    "title": "About KeywordLeadGen",
     "subtitle": "Revolutionizing lead generation with AI",
     "mission": {
       "title": "Our Mission",
-      "description": "At LeadNimbus, our mission is simple: to empower businesses by automating lead generation and data scraping through cutting-edge AI technology. We believe that businesses, regardless of size, should have access to high-quality leads and insights without the manual work."
+      "description": "At KeywordLeadGen, our mission is simple: to empower businesses by automating lead generation and data scraping through cutting-edge AI technology. We believe that businesses, regardless of size, should have access to high-quality leads and insights without the manual work."
     },
     "whatWeDo": {
       "title": "What We Do",
-      "description": "LeadNimbus provides AI-driven solutions for automated lead generation, social media scraping, and keyword and hashtag research. Our platform extracts data from public sources like Facebook, Twitter (X), Instagram, and Reddit, making it easy for businesses to track trends, gather leads, and optimize their marketing strategies."
+      "description": "KeywordLeadGen provides AI-driven solutions for automated lead generation, social media scraping, and keyword and hashtag research. Our platform extracts data from public sources like Reddit, making it easy for businesses to track trends, gather leads, and optimize their marketing strategies."
     },
     "team": {
       "title": "Meet the Team",
@@ -223,26 +347,47 @@
           "name": "John Doe",
           "role": "Founder & CEO",
           "image": "/team/John.jpg",
-          "description": "With over a decade of experience in AI and automation, John leads LeadNimbus with a vision to transform how businesses approach lead generation."
+          "description": "With over a decade of experience in AI and automation, John leads KeywordLeadGen with a vision to transform how businesses approach lead generation."
         },
         {
           "name": "Jane Doe",
           "role": "Head of Product",
           "image": "/team/Alice.jpg",
-          "description": "Jane ensures that LeadNimbus remains at the cutting edge, constantly innovating and improving our tools for better lead generation and scraping."
+          "description": "Jane ensures that KeywordLeadGen remains at the cutting edge, constantly innovating and improving our tools for better lead generation and scraping."
         },
         {
           "name": "John Doe Jr.",
           "role": "Marketing Director",
           "image": "/team/John.jpg",
-          "description": "With a deep understanding of SEO and digital marketing, David ensures that LeadNimbus reaches businesses that need our solutions most."
+          "description": "With a deep understanding of SEO and digital marketing, David ensures that KeywordLeadGen reaches businesses that need our solutions most."
         }
       ]
     },
     "contact": {
       "title": "Get in Touch",
-      "description": "Want to learn more about LeadNimbus or have any questions? Feel free to reach out to us at:",
-      "email": "hello@leadnimbus.com"
+      "description": "Want to learn more about KeywordLeadGen or have any questions? Feel free to reach out to us at:",
+      "email": "hello@keywordleadgen.com"
+    },
+    "stats": {
+      "title": "Our Impact",
+      "items": [
+        {
+          "number": "100+",
+          "label": "Active Business Users"
+        },
+        {
+          "number": "1M+",
+          "label": "Leads Generated"
+        },
+        {
+          "number": "50K+",
+          "label": "Subreddits Analyzed"
+        },
+        {
+          "number": "95%",
+          "label": "Customer Satisfaction"
+        }
+      ]
     }
   }
 }
