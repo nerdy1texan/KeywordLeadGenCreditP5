@@ -7,8 +7,8 @@ import AboutTeam from "@/components/AboutTeam";
 import AboutContact from "@/components/AboutContact";
 
 export const metadata: Metadata = {
-  title: 'About Us | LeadNimbus',
-  description: 'Learn about LeadNimbus, our mission, team, and how we revolutionize lead generation using AI.',
+  title: 'About Us | KeywordLeadGen',
+  description: 'Learn about KeywordLeadGen, our mission, team, and how we revolutionize lead generation using AI.',
 };
 
 export default async function AboutUsPage() {

@@ -81,15 +81,15 @@ export default function DashboardHeader({
       </Transition.Root>
 
       <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-900/10 dark:border-slate-50/[0.06]">
-        <div className="relative flex h-20 items-center justify-between bg-base-100 px-6 backdrop-blur-md">
+        <div className="relative flex h-20 items-center justify-between bg-base-100 px-8 backdrop-blur-md">
           <div>
             <div className="hidden flex-shrink-0 items-center gap-2 md:flex">
-              <ThemedLogo className="block h-6 w-auto" />
+              <ThemedLogo className="block h-10 w-auto" />
             </div>
             <div className="flex items-center justify-start md:hidden">
               <MenuIcon
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="h-6 w-6 cursor-pointer"
+                className="h-8 w-8 cursor-pointer"
                 aria-hidden="true"
               />
             </div>
@@ -102,12 +102,12 @@ export default function DashboardHeader({
             <ThemeSwitcher />
             <div className="tooltip tooltip-bottom" data-tip="Notifications">
               <span className="sr-only">View notifications</span>
-              <Bell className="h-6 w-6" aria-hidden="true" />
+              <Bell className="h-7 w-7" aria-hidden="true" />
             </div>
 
             <Menu as="div" className="relative z-40 flex-shrink-0">
               <Menu.Button className="flex items-center rounded-full">
-                <Avatar user={user} className="h-8 w-8" />
+                <Avatar user={user} className="h-10 w-10" />
               </Menu.Button>
               <Transition
                 as={Fragment}

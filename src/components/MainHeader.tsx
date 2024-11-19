@@ -10,9 +10,9 @@ export default async function MainHeader() {
   const t = (await getDictionary())["Common"];
 
   return (
-    <header className="fixed top-0 z-40 flex h-16 w-full items-center border-b border-slate-50/[0.01] backdrop-blur-lg transition-colors duration-500">
+    <header className="fixed top-0 z-40 flex h-20 w-full items-center border-b border-slate-50/[0.01] backdrop-blur-lg transition-colors duration-500">
       <div className="container mx-auto flex max-w-7xl items-center justify-between px-4 ">
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-56">
           <ThemedLogo />
         </div>
 

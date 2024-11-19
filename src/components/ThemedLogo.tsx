@@ -9,16 +9,16 @@ export default function ThemedLogo({ className }: { className?: string }) {
     >
       <div data-hide-on-theme="dark">
         <img
-          className={className ? className : "h-6 w-auto"}
+          className={className ? className : "h-10 w-auto"}
           src={`/logo_light.svg`}
-          alt="LeadNimbus Logo"
+          alt="KeywordLeadGen Logo"
         />
       </div>
       <div data-hide-on-theme="light">
         <img
-          className={className ? className : "h-6 w-auto"}
+          className={className ? className : "h-10 w-auto"}
           src={`/logo_dark.svg`}
-          alt="LeadNimbus Logo"
+          alt="KeywordLeadGen Logo"
         />
       </div>
     </a>

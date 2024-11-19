@@ -41,7 +41,7 @@ export const SITE = {
 
 export const ROUTES = {
   home: {
-    title: "LeadNimbus",
+    title: "KeywordLeadGen",
     path: "/",
   },
   features: {

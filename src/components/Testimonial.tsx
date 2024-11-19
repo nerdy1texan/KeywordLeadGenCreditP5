@@ -2,28 +2,29 @@ import { Github, Instagram, Linkedin, Twitter } from "lucide-react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { getDictionary } from "@/dictionaries";
 import Image from "next/image";
+
 const testimonials = [
   {
     avatar: "/testimonials/John.jpg",
     name: "John D.",
-    title: "Sales Consultant",
-    text: "LeadNimbus has revolutionized my lead generation process. The AI-driven scrapers and keyword research tools helped me uncover valuable leads that I would've missed manually. A true game-changer for my business!",
+    title: "Growth Marketing Lead",
+    text: "KeywordLeadGen transformed our Reddit lead generation strategy. The AI-powered subreddit discovery and intent detection helped us find high-quality leads we would've missed. Our conversion rate increased by 45% in just two months!",
     url: "",
     icon: <Github />,
   },
   {
     avatar: "/testimonials/Alice.jpg",
     name: "Alice M.",
-    title: "Marketing Strategist",
-    text: "The keyword and hashtag generator in LeadNimbus has transformed the way we optimize our campaigns. Our social media posts are now more targeted, and engagement has skyrocketed. The automation features are invaluable!",
+    title: "Community Manager",
+    text: "The Smart Reply Assistant in KeywordLeadGen is a game-changer. It helps us engage authentically with potential customers across multiple subreddits while saving hours daily. Our response rate has doubled since using the platform!",
     url: "",
     icon: <Instagram />,
   },
   {
     avatar: "/testimonials/Katty.jpg",
     name: "Katty L.",
-    title: "Social Media Manager",
-    text: "LeadNimbus makes social media scraping and lead generation incredibly easy. I use it to extract data from Facebook and Twitter (X) profiles, and the insights have been instrumental in crafting better outreach strategies. Highly recommended!",
+    title: "B2B Sales Director",
+    text: "KeywordLeadGen makes Reddit lead generation incredibly efficient. The AI automatically identifies high-intent discussions, and the analytics help us optimize our engagement strategy. We've reduced our customer acquisition cost by 60%!",
     url: "",
     icon: <Linkedin />,
   },
@@ -31,12 +32,28 @@ const testimonials = [
     avatar: "/testimonials/John.jpg",
     name: "Mark S.",
     title: "SaaS Founder",
-    text: "LeadNimbus has been a game-changer for scaling our SaaS business. The AI scrapers allow us to automate lead generation and keep track of industry trends through real-time keyword monitoring. It saves us time and boosts productivity!",
+    text: "As a startup founder, KeywordLeadGen has been invaluable for growth. The automated subreddit monitoring and lead scoring help us find perfect-fit customers on Reddit. We've generated over 200 qualified leads in our first month!",
     url: "",
     icon: <Twitter />,
   },
-  
+  {
+    avatar: "/testimonials/Katty.jpg",
+    name: "Sarah R.",
+    title: "Digital Marketing Consultant",
+    text: "The competitor tracking feature in KeywordLeadGen gives us a huge advantage. We can monitor competitor mentions across Reddit and identify new opportunity spaces instantly. It's like having a full-time Reddit research team!",
+    url: "",
+    icon: <Linkedin />,
+  },
+  {
+    avatar: "/testimonials/John.jpg",
+    name: "David C.",
+    title: "Product Marketing Manager",
+    text: "KeywordLeadGen's intent detection AI is incredibly accurate. It helps us find users actively looking for solutions like ours on Reddit. The automated lead scoring saves us hours of manual work and the leads convert amazingly well!",
+    url: "",
+    icon: <Twitter />,
+  },
 ];
+
 export default async function Testimonials() {
   const t = (await getDictionary())["Testimonials"];
 
