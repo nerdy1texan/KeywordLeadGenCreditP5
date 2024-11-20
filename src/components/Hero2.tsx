@@ -62,10 +62,18 @@ export async function Hero2() {
                  "
             ></div>
           </div>
-          <h1 className="relative mx-auto text-balance  px-4 py-2 pt-5 text-center text-4xl font-extrabold tracking-tight text-black dark:text-white sm:text-5xl md:text-6xl lg:text-7xl">
-            {t["title"]}
-            <span className="bg-gradient bg-clip-text text-transparent">
-              {t["titleHighlight"]}
+          <h1 className="relative mx-auto text-balance px-4 py-2 pt-5 text-center text-4xl font-extrabold tracking-tight text-black dark:text-white sm:text-5xl md:text-6xl lg:text-7xl">
+            Welcome to{" "}
+            <span className="bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] bg-clip-text text-transparent">
+              KeywordLeadGen
+            </span>
+            <br />
+            <span className="block mt-2">
+              Your{" "}
+              <span className="bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] bg-clip-text text-transparent">
+                AI-Powered
+              </span>{" "}
+              Reddit Lead Generation Platform
             </span>
           </h1>
           <p
