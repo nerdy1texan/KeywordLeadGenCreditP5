@@ -185,13 +185,24 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 Monitor and analyze posts from your selected communities
               </p>
             </div>
-            <Button 
+            <Button
               onClick={() => setShowMonitoringDialog(true)}
-              disabled={!currentProduct || monitoredSubreddits.length === 0}
-              className="flex items-center gap-2"
+              className="relative px-8 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
+                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
+                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
+                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10
+                         after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-r after:from-[var(--accent-base)] 
+                         after:via-[#b06ab3] after:to-[var(--accent-base)] after:opacity-0 after:transition-opacity 
+                         after:duration-300 after:animate-gradient-x after:blur-xl after:-z-20
+                         hover:after:opacity-100"
+              style={{
+                '--accent-base-rgb': '89, 91, 255'  // Replace with your accent color RGB values
+              } as React.CSSProperties}
             >
-              <RefreshCw className="h-4 w-4" />
-              Start Monitoring
+              <span className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Start Monitoring
+              </span>
             </Button>
           </div>
 
@@ -211,13 +222,12 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             <h2 className="text-xl font-semibold mb-2">Monitored Communities</h2>
             <p className="text-gray-400 mb-4">Click on a community card or use the tabs below to filter posts</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {monitoredSubreddits.map((subreddit, index) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {monitoredSubreddits.map((subreddit) => (
                 <motion.div
-                  key={subreddit.id}
+                  key={subreddit.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
                   onClick={() => setFilters(prev => ({
                     ...prev,
                     subreddit: subreddit.name
@@ -225,14 +235,13 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                   className="cursor-pointer"
                 >
                   <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
-                    <div 
-                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)] blur-xl group-hover:blur-2xl transition-all duration-200 opacity-20 group-hover:opacity-30"
-                    />
-                    <div className="relative h-full p-6 rounded-xl border border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-[var(--primary-dark)]/90 backdrop-blur-sm flex flex-col">
+                    <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)] opacity-70 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)] blur-xl group-hover:blur-2xl transition-all duration-200 opacity-20 group-hover:opacity-30" />
+                    <div className="relative h-full p-6 rounded-xl bg-white dark:bg-gray-900 backdrop-blur-sm flex flex-col">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-medium bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] bg-clip-text text-transparent hover:opacity-80 transition-colors">
+                          <h3 className="text-lg font-medium bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] bg-clip-text text-transparent">
                             r/{subreddit.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
@@ -253,7 +262,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                       </p>
 
                       {/* Footer */}
-                      <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-800/50">
+                      <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                         <Button
                           variant="ghost"
                           className="text-[var(--accent-base)] hover:text-[var(--accent-light)] hover:bg-[var(--accent-base)]/10 transition-colors"
@@ -270,7 +279,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-gray-300 hover:text-white hover:bg-gray-700/50"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                           onClick={(e) => {
                             e.stopPropagation();
                             window.open(`https://reddit.com/r/${subreddit.name}`, '_blank');
@@ -287,14 +296,21 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
           </div>
 
           {/* Post Filtering */}
-          <div className="sticky top-0 z-10 bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg border border-gray-800/50 shadow-lg">
-            <PostFilters 
-              subreddits={monitoredSubreddits.map(sub => sub.name)}
-              selectedSubreddit={filters.subreddit}
-              timeRange={filters.timeRange}
-              onSubredditChange={handleSubredditChange}
-              onTimeRangeChange={handleTimeRangeChange}
-            />
+          <div className="sticky top-0 z-10">
+            <div className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg shadow-lg border-2 border-transparent bg-clip-padding"
+                 style={{ 
+                   backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+                   backgroundOrigin: 'border-box',
+                   backgroundClip: 'padding-box, border-box'
+                 }}>
+              <PostFilters 
+                subreddits={monitoredSubreddits.map(sub => sub.name)}
+                selectedSubreddit={filters.subreddit}
+                timeRange={filters.timeRange}
+                onSubredditChange={handleSubredditChange}
+                onTimeRangeChange={handleTimeRangeChange}
+              />
+            </div>
           </div>
 
           {/* Posts Masonry Grid */}

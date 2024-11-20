@@ -23,7 +23,11 @@ export function PostFilters({
           variant={selectedSubreddit === 'all' ? 'default' : 'secondary'}
           size="sm"
           onClick={() => onSubredditChange('all')}
-          className="rounded-full"
+          className={`rounded-full ${
+            selectedSubreddit === 'all' 
+              ? 'bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white hover:from-[var(--accent-light)] hover:to-[#c278c2]' 
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+          }`}
         >
           All Communities
         </Button>
@@ -33,7 +37,11 @@ export function PostFilters({
             variant={selectedSubreddit === subreddit ? 'default' : 'secondary'}
             size="sm"
             onClick={() => onSubredditChange(subreddit)}
-            className="rounded-full"
+            className={`rounded-full ${
+              selectedSubreddit === subreddit 
+                ? 'bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white hover:from-[var(--accent-light)] hover:to-[#c278c2]' 
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
           >
             r/{subreddit}
           </Button>
@@ -41,10 +49,10 @@ export function PostFilters({
       </div>
 
       <Select value={timeRange} onValueChange={onTimeRangeChange}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <SelectValue placeholder="Past 24 hours" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <SelectItem value="day">Past 24 hours</SelectItem>
           <SelectItem value="week">Past week</SelectItem>
           <SelectItem value="month">Past month</SelectItem>

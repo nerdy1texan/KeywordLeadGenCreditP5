@@ -98,7 +98,14 @@ export default function DashboardHeader({
 
           <div className="flex items-center justify-end gap-6">
             <Link href={ROUTES.tutorials.path}>
-              <div className="gradient btn btn-outline text-gray-800">Tutorials</div>
+              <div className="btn btn-outline border-2 border-transparent bg-clip-padding text-white dark:text-white hover:text-gray-800 hover:bg-white"
+                   style={{ 
+                     backgroundImage: `linear-gradient(transparent, transparent), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+                     backgroundOrigin: 'border-box',
+                     backgroundClip: 'padding-box, border-box'
+                   }}>
+                Tutorials
+              </div>
             </Link>
             <ThemeSwitcher />
             <div className="tooltip tooltip-bottom" data-tip="Notifications">
