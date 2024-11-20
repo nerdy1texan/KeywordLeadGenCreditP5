@@ -10,6 +10,7 @@ import { type User } from "@prisma/client";
 import ThemedLogo from "@/components/ThemedLogo";
 import { MENUS, ROUTES } from "@/config/site";
 import Avatar from "@/components/Avatar";
+import { signOut } from "next-auth/react";
 
 export default function DashboardHeader({
   user,
@@ -138,6 +139,16 @@ export default function DashboardHeader({
                         </Menu.Item>
                       );
                   })}
+                  <Menu.Item>
+                    {() => (
+                      <button
+                        onClick={() => signOut()}
+                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                      >
+                        Sign Out
+                      </button>
+                    )}
+                  </Menu.Item>
                 </Menu.Items>
               </Transition>
             </Menu>

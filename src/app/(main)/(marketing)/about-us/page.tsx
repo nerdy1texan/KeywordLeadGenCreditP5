@@ -27,7 +27,7 @@ export default async function AboutUsPage() {
         <div className="mt-12">
           <AboutMission />
           <AboutWhatWeDo />
-          <AboutTeam />
+          {/* <AboutTeam /> */}
           <AboutContact />
         </div>
       </div>
