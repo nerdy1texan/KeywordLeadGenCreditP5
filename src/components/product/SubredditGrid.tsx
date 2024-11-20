@@ -81,13 +81,21 @@ export function SubredditGrid({ subreddits, isLoading, onSubredditsChange }: Sub
         <h3 className="text-lg font-medium">Finding Relevant Subreddits...</h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="border border-gray-700 rounded-lg p-4 space-y-3">
+            <div 
+              key={i} 
+              className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg shadow-lg border-2 border-transparent bg-clip-padding"
+              style={{ 
+                backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'padding-box, border-box'
+              }}
+            >
               <div className="flex justify-between items-start">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-32 bg-[var(--primary-dark)]/60" />
+                <Skeleton className="h-6 w-24 bg-[var(--primary-dark)]/60" />
               </div>
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-16 w-full mt-3 bg-[var(--primary-dark)]/60" />
+              <Skeleton className="h-6 w-24 mt-3 bg-[var(--primary-dark)]/60" />
             </div>
           ))}
         </div>
@@ -107,27 +115,35 @@ export function SubredditGrid({ subreddits, isLoading, onSubredditsChange }: Sub
       <div className="max-h-[800px] overflow-y-auto pr-2">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {sortedSubreddits.map((subreddit) => (
-            <div key={subreddit.id || subreddit.name} className="border border-gray-700 rounded-lg p-4">
+            <div 
+              key={subreddit.id || subreddit.name} 
+              className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg shadow-lg border-2 border-transparent bg-clip-padding"
+              style={{ 
+                backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+                backgroundOrigin: 'border-box',
+                backgroundClip: 'padding-box, border-box'
+              }}
+            >
               <div className="flex justify-between items-start mb-2">
                 <a 
                   href={subreddit.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:text-blue-400 font-medium"
+                  className="text-white hover:text-[var(--accent-base)] font-medium transition-colors"
                 >
                   r/{subreddit.name}
                 </a>
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="bg-[var(--primary-dark)]/60 text-white">
                   {(subreddit.memberCount || 0).toLocaleString()} members
                 </Badge>
               </div>
-              <p className="text-sm text-gray-400 line-clamp-2">
+              <p className="text-sm text-gray-300 line-clamp-2">
                 {subreddit.description || 'No description available'}
               </p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex justify-between items-center">
                 <Badge 
                   variant={getRelevanceBadgeVariant(subreddit.relevanceScore)} 
-                  className="mt-2"
+                  className="bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white"
                 >
                   Relevance: {Math.round(subreddit.relevanceScore)}%
                 </Badge>

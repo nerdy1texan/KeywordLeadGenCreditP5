@@ -334,7 +334,12 @@ export default function ProductInfoForm() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-6 shadow-lg border-2 border-transparent bg-clip-padding"
+            style={{ 
+              backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+              backgroundOrigin: 'border-box',
+              backgroundClip: 'padding-box, border-box'
+            }}>
         <form onSubmit={formik.handleSubmit} className="space-y-6">
           {/* Product Name */}
           <div>
@@ -486,7 +491,13 @@ export default function ProductInfoForm() {
               <h4 className="font-medium">Existing Plans</h4>
               <div className="grid gap-4 md:grid-cols-2">
                 {(formik.values.plans ?? []).map((plan, index) => (
-                  <div key={index} className="border border-gray-700 rounded-lg p-4">
+                  <div key={index} 
+                       className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg shadow-lg border-2 border-transparent bg-clip-padding"
+                       style={{ 
+                         backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
+                         backgroundOrigin: 'border-box',
+                         backgroundClip: 'padding-box, border-box'
+                       }}>
                     <div className="flex justify-between items-center">
                       <h5 className="font-medium">{plan.name}</h5>
                       <div className="flex gap-2">
@@ -526,7 +537,14 @@ export default function ProductInfoForm() {
               type="button"
               onClick={handleFindSubreddits}
               disabled={isSearchingSubreddits || !formik.values.description}
-              className="w-auto"
+              className="relative px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
+                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
+                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
+                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10
+                         after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-r after:from-[var(--accent-base)] 
+                         after:via-[#b06ab3] after:to-[var(--accent-base)] after:opacity-0 after:transition-opacity 
+                         after:duration-300 after:animate-gradient-x after:blur-xl after:-z-20
+                         hover:after:opacity-100"
             >
               {isSearchingSubreddits ? (
                 <>
@@ -544,7 +562,10 @@ export default function ProductInfoForm() {
             <Button
               type="submit"
               disabled={formik.isSubmitting}
-              className="w-auto"
+              className="relative px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
+                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
+                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
+                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10"
             >
               Save Product Info
             </Button>

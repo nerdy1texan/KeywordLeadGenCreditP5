@@ -40,7 +40,8 @@ type PostWithProduct = Omit<RedditPost, 'engagement' | 'product'> & {
 export default function MainDashboard({ productId }: MainDashboardProps) {
   const [posts, setPosts] = useState<PostWithProduct[]>([]);
   const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [selectedPost, setSelectedPost] = useState<PostWithProduct | null>(null);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [filters, setFilters] = useState({
@@ -53,7 +54,6 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
 
   const fetchPosts = async () => {
     try {
-      setLoading(true);
       const params = new URLSearchParams({
         timeRange: filters.timeRange,
         ...(filters.subreddit !== 'all' && { subreddit: filters.subreddit })
@@ -78,15 +78,14 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast('Failed to fetch posts. Please try again.', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        if (!isInitialLoad) setIsLoading(true);
+        
         await Promise.all([
           fetchPosts(),
           fetchMonitoredSubreddits()
@@ -94,7 +93,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
+        setIsInitialLoad(false);
       }
     };
 
@@ -103,7 +103,6 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
 
   const fetchMonitoredSubreddits = async () => {
     try {
-      setLoading(true);
       const response = await fetch('/api/reddit/monitored-subreddits', {
         credentials: 'include'
       });
@@ -116,8 +115,6 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       setMonitoredSubreddits(data);
     } catch (error) {
       console.error('Failed to fetch monitored subreddits:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -316,15 +313,21 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
           </div>
 
           {/* Posts Masonry Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               {Array(6).fill(0).map((_, i) => (
                 <div 
                   key={i} 
                   className="h-[300px] rounded-xl bg-[var(--primary-dark)]/50 animate-pulse border border-gray-800/20" 
                 />
               ))}
-            </div>
+            </motion.div>
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-300">No posts found. Try adjusting your filters or start monitoring.</p>

@@ -54,7 +54,7 @@ export function Hero2Client({ dictionary: t }: Hero2ClientProps) {
 
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
-                href={ROUTES.pricing.path}
+                href="#pricing"
                 title={ROUTES.pricing.title}
                 className="shining text-md group relative inline-flex w-full items-center justify-center gap-1 whitespace-pre rounded-full border bg-primary px-8 py-2 font-semibold text-primary-content shadow-sm transition-colors hover:bg-secondary md:flex"
                 role="button"
