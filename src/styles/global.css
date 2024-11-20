@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Primary Colors - 60% */
+  --primary-light: #ffffff;
+  --primary-dark: #0f1115;
+  
+  /* Secondary Colors - 30% */
+  --secondary-light: #eceafd;
+  --secondary-dark: #2d2879;
+  
+  /* Accent Colors - 10% */
+  --accent-base: #5244e1;
+  --accent-light: #6d61e5;
+  --accent-dark: #3f34b3;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #5244e1 0%, #b06ab3 100%);
+  --gradient-hover: linear-gradient(135deg, #6d61e5 0%, #c278c2 100%);
+}
+
+/* Base Styles */
 @layer base {
   .h1 {
     @apply text-4xl font-extrabold leading-tight;
@@ -36,73 +56,86 @@
       @apply text-4xl;
     }
   }
+
+  body {
+    @apply bg-white dark:bg-[var(--primary-dark)] text-gray-900 dark:text-gray-100;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Update heading colors for dark mode */
+  .dark .h1,
+  .dark .h2,
+  .dark .h3,
+  .dark .h4,
+  .dark .h5,
+  .dark .h6 {
+    @apply text-gray-100;
+  }
 }
 
-:root {
-  font-size: 15px; /* 16x is default */
+/* Update text colors in dark mode */
+.dark p {
+  @apply text-gray-200;
 }
 
-html {
-  scroll-behavior: smooth;
+.dark .text-gray-600 {
+  @apply text-gray-300;
 }
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
+.dark .text-gray-500 {
+  @apply text-gray-400;
 }
 
-body {
-  font-feature-settings: "rlig" 1, "calt" 1;
+/* Component Styles */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent-base)] disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-[var(--accent-base)] hover:bg-[var(--accent-light)] text-white shadow-md hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply btn bg-[var(--secondary-light)] dark:bg-[var(--secondary-dark)] hover:bg-opacity-80 text-[var(--accent-base)] dark:text-white;
+  }
+
+  .btn-gradient {
+    @apply btn bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white;
+  }
 }
 
-.gradient {
-  background: linear-gradient(
-    to right,
-    rgb(199, 210, 254),
-    rgb(254, 202, 202),
-    rgb(254, 249, 195)
-  );
+/* Utility Classes */
+.gradient-border {
+  @apply relative rounded-lg p-[1px] bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3];
 }
 
-input {
-  @apply focus:outline-none;
+.gradient-border > * {
+  @apply bg-white dark:bg-[var(--primary-dark)] rounded-lg;
 }
 
-.input {
-  @apply focus:outline-none;
+.card {
+  @apply bg-white dark:bg-[var(--primary-dark)] rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200;
 }
 
-.textarea {
-  @apply focus:outline-none;
-}
-
-.btn {
-  @apply focus:outline-none;
-}
-
-.highlight-underline {
-  @apply underline decoration-sky-500 decoration-4;
+.input-primary {
+  @apply w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-[var(--accent-base)] dark:focus:border-[var(--accent-light)] bg-white dark:bg-[var(--primary-dark)] transition-colors duration-200;
 }
 
 .highlight {
-  @apply rounded-md bg-yellow-200 p-1 text-gray-800;
-}
-
-.skeleton {
-  @apply my-1 animate-pulse rounded-md bg-gray-300 leading-relaxed;
-}
-
-.border-color {
-  @apply border-slate-900/10  dark:border-slate-50/[0.06];
+  @apply rounded-md bg-[var(--secondary-light)] dark:bg-[var(--secondary-dark)] p-1 text-[var(--accent-base)] dark:text-white;
 }
 
 .moving-border {
-  border: 3px solid #0000;
+  border: 3px solid transparent;
   border-radius: 12px;
-  background: linear-gradient(#131219, #131219) padding-box,
-    linear-gradient(var(--angle), #070707, #4f46e5) border-box;
-  animation: 8s rotate linear infinite;
+  background: linear-gradient(var(--primary-light), var(--primary-light)) padding-box,
+    linear-gradient(var(--angle), var(--accent-base), #b06ab3) border-box;
+}
+
+[data-theme="dark"] .moving-border {
+  background: linear-gradient(var(--primary-dark), var(--primary-dark)) padding-box,
+    linear-gradient(var(--angle), var(--accent-base), #b06ab3) border-box;
 }
 
 .shining {
@@ -144,4 +177,53 @@ input {
 .masonry-grid_column {
   padding-left: 1.5rem;
   background-clip: padding-box;
+}
+
+.thick-gradient-border {
+  position: relative;
+  background: linear-gradient(var(--angle), var(--accent-base), #b06ab3);
+  animation: rotate 4s linear infinite;
+}
+
+.thick-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: var(--primary-light);
+  border-radius: 10px;
+  z-index: 0;
+}
+
+[data-theme="dark"] .thick-gradient-border::before {
+  background: var(--primary-dark);
+}
+
+.thick-gradient-border > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Update the image-3d-wrapper styles */
+.image-3d-wrapper {
+  perspective: 1500px;
+  transform-style: preserve-3d;
+}
+
+.image-3d-wrapper > div {
+  transform: translateZ(0);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.image-3d-wrapper:hover > div {
+  transform: translateZ(30px) rotateX(2deg) rotateY(-2deg);
+  box-shadow: 
+    0 10px 30px -5px rgba(82, 68, 225, 0.3),
+    0 20px 40px -10px rgba(176, 106, 179, 0.2);
+}
+
+[data-theme="dark"] .image-3d-wrapper:hover > div {
+  box-shadow: 
+    0 10px 30px -5px rgba(82, 68, 225, 0.4),
+    0 20px 40px -10px rgba(176, 106, 179, 0.3);
 }
