@@ -100,27 +100,27 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
   };
 
   return (
-    <div className="bg-gray-900/90 border border-gray-800/50 rounded-xl p-6 hover:border-gray-700/50 transition-all w-full mb-6">
+    <div className="bg-white dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800/50 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-700/50 transition-all w-full mb-6 shadow-sm hover:shadow-md">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-medium text-lg text-white/90">
+          <h3 className="font-medium text-lg text-gray-900 dark:text-white/90">
             {post.title}
           </h3>
-          <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+          <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
             <span>r/{post.subreddit}</span>
             <span>•</span>
             <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
           </div>
         </div>
-        <button className="text-gray-400 hover:text-yellow-400 transition-colors">
+        <button className="text-gray-400 hover:text-[var(--accent-base)] transition-colors">
           <Star className="h-5 w-5" />
         </button>
       </div>
 
       {/* Content */}
       <div className="mt-4">
-        <p className="text-gray-300 whitespace-pre-wrap break-words">
+        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
           {post.text.split(/\s+/).map((word, index) => {
             if (word.match(/^(https?:\/\/[^\s]+)/)) {
               return (
@@ -142,13 +142,13 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         </p>
       </div>
 
-      {/* Generated Reply section with updated gradient border */}
+      {/* Generated Reply section with updated styling */}
       {post.latestReply && (
         <div className="mt-6">
-          <div className="rounded-lg p-[1px] bg-gradient-to-r from-indigo-500/50 via-purple-500/50 to-pink-500/50">
-            <div className="bg-gray-900 rounded-lg p-4">
+          <div className="rounded-lg p-[1px] bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)]">
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
-                <h4 className="text-sm font-medium text-gray-400">Generated Reply</h4>
+                <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">Generated Reply</h4>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -173,7 +173,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
                   </div>
                 </div>
               </div>
-              <p className="text-gray-300 text-sm whitespace-pre-wrap">
+              <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
                 {post.latestReply}
               </p>
             </div>
@@ -193,12 +193,12 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         />
       )}
 
-      {/* Actions */}
+      {/* Actions with updated gradient buttons */}
       <div className="flex gap-3 mt-6">
         <Button 
           onClick={handleGenerateReply}
           disabled={isGenerating || showCommentBuilder}
-          className="flex-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          className="flex-1 bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
         >
           {isGenerating ? 'Generating...' : 'Generate Reply'}
         </Button>
@@ -206,7 +206,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
           <Button
             onClick={() => setShowCommentBuilder(true)}
             disabled={showCommentBuilder}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            className="flex-1 bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white"
           >
             AI Reply Assistant
           </Button>
@@ -214,7 +214,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         <Button 
           variant="outline"
           onClick={() => window.open(post.url, '_blank')}
-          className="px-3"
+          className="px-3 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <ExternalLink className="h-4 w-4" />
         </Button>

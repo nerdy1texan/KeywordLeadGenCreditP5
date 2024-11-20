@@ -224,31 +224,31 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                   }))}
                   className="cursor-pointer"
                 >
-                  <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-102">
+                  <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
                     <div 
-                      className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 blur-xl group-hover:blur-2xl transition-all duration-200 opacity-75 group-hover:opacity-100"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)] blur-xl group-hover:blur-2xl transition-all duration-200 opacity-20 group-hover:opacity-30"
                     />
-                    <div className="relative h-full p-6 rounded-xl border border-gray-800/50 bg-gray-900/90 backdrop-blur-sm flex flex-col">
+                    <div className="relative h-full p-6 rounded-xl border border-gray-200 dark:border-gray-800/50 bg-white/90 dark:bg-[var(--primary-dark)]/90 backdrop-blur-sm flex flex-col">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <h3 className="text-lg font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                          <h3 className="text-lg font-medium bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] bg-clip-text text-transparent hover:opacity-80 transition-colors">
                             r/{subreddit.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <UsersIcon className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm text-gray-400">
+                            <UsersIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            <span className="text-sm text-gray-600 dark:text-gray-300">
                               {(subreddit.memberCount || 0).toLocaleString()} members
                             </span>
                           </div>
                         </div>
-                        <Badge className="bg-purple-500/10 border-purple-500/20 text-purple-400">
+                        <Badge className="bg-[var(--accent-base)]/10 border-[var(--accent-base)]/20 text-[var(--accent-base)]">
                           {subreddit.relevanceScore}% match
                         </Badge>
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm text-gray-400 flex-grow line-clamp-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow line-clamp-3">
                         {subreddit.description || 'No description available'}
                       </p>
 
@@ -256,7 +256,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                       <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-800/50">
                         <Button
                           variant="ghost"
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors"
+                          className="text-[var(--accent-base)] hover:text-[var(--accent-light)] hover:bg-[var(--accent-base)]/10 transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
                             setFilters(prev => ({
@@ -270,7 +270,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-gray-400 hover:text-gray-300"
+                          className="text-gray-300 hover:text-white hover:bg-gray-700/50"
                           onClick={(e) => {
                             e.stopPropagation();
                             window.open(`https://reddit.com/r/${subreddit.name}`, '_blank');
@@ -287,7 +287,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
           </div>
 
           {/* Post Filtering */}
-          <div className="sticky top-0 z-10 bg-gray-900/80 backdrop-blur-lg p-4 rounded-lg border border-gray-800/50">
+          <div className="sticky top-0 z-10 bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg border border-gray-800/50 shadow-lg">
             <PostFilters 
               subreddits={monitoredSubreddits.map(sub => sub.name)}
               selectedSubreddit={filters.subreddit}
@@ -301,12 +301,15 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array(6).fill(0).map((_, i) => (
-                <div key={i} className="h-[300px] rounded-xl bg-gray-800/50 animate-pulse" />
+                <div 
+                  key={i} 
+                  className="h-[300px] rounded-xl bg-[var(--primary-dark)]/50 animate-pulse border border-gray-800/20" 
+                />
               ))}
             </div>
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400">No posts found. Try adjusting your filters or start monitoring.</p>
+              <p className="text-gray-300">No posts found. Try adjusting your filters or start monitoring.</p>
             </div>
           ) : (
             <Masonry
