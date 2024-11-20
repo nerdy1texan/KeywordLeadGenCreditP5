@@ -1,11 +1,15 @@
+"use client";
+
 import { useRef, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useTheme } from 'next-themes';
 
 interface Point {
   position: THREE.Vector3;
   velocity: THREE.Vector3;
+  initialPosition: THREE.Vector3;
 }
 
 interface NetworkProps {
@@ -14,43 +18,58 @@ interface NetworkProps {
 }
 
 function Network({ mouse, scrollY }: NetworkProps) {
-  const { size, viewport } = useThree();
+  const { viewport } = useThree();
   const points = useRef<Point[]>([]);
   const linesMesh = useRef<THREE.LineSegments>(null!);
   const { resolvedTheme } = useTheme();
+  const time = useRef(0);
 
-  // Initialize points
+  // Initialize points in a wider, flatter pattern
   useMemo(() => {
-    points.current = Array.from({ length: 50 }, () => ({
-      position: new THREE.Vector3(
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10,
-        (Math.random() - 0.5) * 10
-      ),
-      velocity: new THREE.Vector3(
-        Math.random() * 0.02 - 0.01,
-        Math.random() * 0.02 - 0.01,
-        Math.random() * 0.02 - 0.01
-      ),
-    }));
+    const count = 80; // Increased number of points
+    points.current = Array.from({ length: count }, (_, i) => {
+      const angle = (i / count) * Math.PI * 2;
+      const radius = 12 + Math.random() * 6; // Wider radius
+      const y = (Math.random() - 0.5) * 4; // Flatter distribution
+      
+      const initialPosition = new THREE.Vector3(
+        Math.cos(angle) * radius,
+        y,
+        Math.sin(angle) * radius
+      );
+
+      return {
+        position: initialPosition.clone(),
+        initialPosition: initialPosition.clone(),
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02,
+          (Math.random() - 0.5) * 0.02
+        ),
+      };
+    });
   }, []);
 
   useFrame((state) => {
+    time.current += 0.001;
     const positions: number[] = [];
     const colors: number[] = [];
-    const color1 = new THREE.Color(resolvedTheme === 'dark' ? '#5244e1' : '#b06ab3');
-    const color2 = new THREE.Color(resolvedTheme === 'dark' ? '#b06ab3' : '#5244e1');
+    
+    // Adjust colors based on theme
+    const color1 = new THREE.Color(resolvedTheme === 'dark' ? '#5244e1' : '#5244e1');
+    const color2 = new THREE.Color(resolvedTheme === 'dark' ? '#b06ab3' : '#b06ab3');
 
-    // Update points
-    points.current.forEach((point) => {
-      point.position.add(point.velocity);
+    // Update points with continuous movement
+    points.current.forEach((point, i) => {
+      // Complex movement pattern
+      const timeOffset = time.current + i * 0.1;
+      const xMovement = Math.sin(timeOffset * 0.5) * 0.3;
+      const yMovement = Math.cos(timeOffset * 0.3) * 0.2;
+      const zMovement = Math.sin(timeOffset * 0.4) * 0.3;
 
-      // Bounce off boundaries
-      ['x', 'y', 'z'].forEach((axis) => {
-        if (Math.abs(point.position[axis]) > 5) {
-          point.velocity[axis] *= -1;
-        }
-      });
+      point.position.x = point.initialPosition.x + xMovement;
+      point.position.y = point.initialPosition.y + yMovement;
+      point.position.z = point.initialPosition.z + zMovement;
 
       // Add mouse influence
       const mouseInfluence = new THREE.Vector3(
@@ -58,45 +77,56 @@ function Network({ mouse, scrollY }: NetworkProps) {
         (mouse.current[1] * viewport.height) / 2,
         0
       );
-      point.position.lerp(mouseInfluence, 0.0001);
+      point.position.lerp(mouseInfluence, 0.01);
+
+      // Add scroll influence
+      point.position.y -= scrollY.current * 0.0002;
     });
 
-    // Create lines between nearby points
-    for (let i = 0; i < points.current.length; i++) {
-      const pointA = points.current[i];
-      
-      for (let j = i + 1; j < points.current.length; j++) {
-        const pointB = points.current[j];
-        const distance = pointA.position.distanceTo(pointB.position);
-        
-        if (distance < 2) {
-          positions.push(
-            pointA.position.x, pointA.position.y, pointA.position.z,
-            pointB.position.x, pointB.position.y, pointB.position.z
-          );
+    // Create lines between points
+    points.current.forEach((pointA, i) => {
+      points.current.forEach((pointB, j) => {
+        if (i < j) {
+          const distance = pointA.position.distanceTo(pointB.position);
+          const maxDistance = 4 + Math.sin(time.current) * 0.5;
+          
+          if (distance < maxDistance) {
+            positions.push(
+              pointA.position.x, pointA.position.y, pointA.position.z,
+              pointB.position.x, pointB.position.y, pointB.position.z
+            );
 
-          const alpha = 1 - (distance / 2);
-          const mixedColor = color1.clone().lerp(color2, alpha);
-          colors.push(
-            mixedColor.r, mixedColor.g, mixedColor.b,
-            mixedColor.r, mixedColor.g, mixedColor.b
-          );
+            const alpha = 1 - (distance / maxDistance);
+            const mixedColor = color1.clone().lerp(color2, alpha);
+            colors.push(
+              mixedColor.r, mixedColor.g, mixedColor.b,
+              mixedColor.r, mixedColor.g, mixedColor.b
+            );
+          }
         }
-      }
-    }
+      });
+    });
 
-    // Update geometry
-    const geometry = linesMesh.current.geometry;
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.color.needsUpdate = true;
+    // Update geometry if it exists
+    if (linesMesh.current && linesMesh.current.geometry) {
+      const geometry = linesMesh.current.geometry;
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+      
+      // Safely update attributes
+      if (geometry.attributes.position) geometry.attributes.position.needsUpdate = true;
+      if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
+    }
   });
 
   return (
     <lineSegments ref={linesMesh}>
       <bufferGeometry />
-      <lineBasicMaterial vertexColors transparent opacity={0.5} />
+      <lineBasicMaterial 
+        vertexColors 
+        transparent 
+        opacity={resolvedTheme === 'dark' ? 0.15 : 0.3} // Higher opacity for light mode
+      />
     </lineSegments>
   );
 }
@@ -127,10 +157,17 @@ export function GeometricBackground() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-0">
-      <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
-        <ambientLight intensity={0.5} />
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      <Canvas camera={{ position: [0, 0, 15], fov: 50 }}>
+        <ambientLight intensity={0.3} />
         <Network mouse={mouse} scrollY={scrollY} />
+        <EffectComposer>
+          <Bloom
+            intensity={0.3}
+            luminanceThreshold={0.1}
+            luminanceSmoothing={0.9}
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );
