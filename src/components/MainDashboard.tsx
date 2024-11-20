@@ -178,32 +178,34 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       ) : (
         <>
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-2xl font-bold mb-2">Reddit Lead Monitor</h1>
-              <p className="text-gray-400">
+          <div className="flex flex-col gap-4 mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">
+              Reddit Lead Monitor
+            </h1>
+            <div className="flex items-center justify-between">
+              <p className="text-sm sm:text-base text-gray-400 max-w-[200px] sm:max-w-none">
                 Monitor and analyze posts from your selected communities
               </p>
+              <Button
+                onClick={() => setShowMonitoringDialog(true)}
+                className="relative px-4 sm:px-8 py-2 rounded-lg font-semibold text-white whitespace-nowrap transition-all duration-300 ease-in-out 
+                           hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
+                           before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
+                           before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10
+                           after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-r after:from-[var(--accent-base)] 
+                           after:via-[#b06ab3] after:to-[var(--accent-base)] after:opacity-0 after:transition-opacity 
+                           after:duration-300 after:animate-gradient-x after:blur-xl after:-z-20
+                           hover:after:opacity-100"
+                style={{
+                  '--accent-base-rgb': '89, 91, 255'
+                } as React.CSSProperties}
+              >
+                <span className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Start</span> Monitoring
+                </span>
+              </Button>
             </div>
-            <Button
-              onClick={() => setShowMonitoringDialog(true)}
-              className="relative px-8 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
-                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
-                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
-                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10
-                         after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-r after:from-[var(--accent-base)] 
-                         after:via-[#b06ab3] after:to-[var(--accent-base)] after:opacity-0 after:transition-opacity 
-                         after:duration-300 after:animate-gradient-x after:blur-xl after:-z-20
-                         hover:after:opacity-100"
-              style={{
-                '--accent-base-rgb': '89, 91, 255'  // Replace with your accent color RGB values
-              } as React.CSSProperties}
-            >
-              <span className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Start Monitoring
-              </span>
-            </Button>
           </div>
 
           {/* Add the dialog */}
