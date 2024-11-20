@@ -12,6 +12,7 @@ import { getCurrentPlanOffering } from "@/lib/utils";
 import clsx from "clsx";
 import Avatar from "@/components/Avatar";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 export default function DashboardSidebar({
   isMobile,
@@ -87,6 +88,15 @@ export default function DashboardSidebar({
               );
           })}
         </nav>
+        <div className="px-2 mt-4">
+          <button
+            onClick={() => signOut()}
+            className="group flex items-center rounded-md px-3 py-3 font-medium text-red-600 hover:bg-red-100"
+          >
+            <icons.LogOut className="mr-3 h-6 w-6 flex-shrink-0" />
+            <div>Sign Out</div>
+          </button>
+        </div>
       </div>
     </div>
   );
