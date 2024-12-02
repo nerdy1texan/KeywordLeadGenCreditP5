@@ -176,21 +176,21 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
         <>
           {/* Header */}
           <div className="flex flex-col gap-4 mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-              Reddit Lead Monitor
-            </h1>
-            <div className="flex items-center justify-between">
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 max-w-[200px] sm:max-w-none">
-                Monitor and analyze posts from your selected communities
-              </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                Reddit Lead Monitor
+              </h1>
               <Button
                 onClick={() => setShowMonitoringDialog(true)}
-                className="bg-[#5244e1] hover:bg-opacity-90 text-white flex items-center gap-2"
+                className="w-full sm:w-auto bg-[#5244e1] hover:bg-opacity-90 text-white flex items-center justify-center gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                <span className="hidden sm:inline">Start</span> Monitoring
+                Start Monitoring
               </Button>
             </div>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              Monitor and analyze posts from your selected communities
+            </p>
           </div>
 
           {/* Add the dialog */}
@@ -221,8 +221,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                   }))}
                   className="cursor-pointer"
                 >
-                  <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
-                    <div className="relative h-full p-6 rounded-xl bg-white dark:bg-gray-900 border-2 border-[#5244e1]/30 hover:border-[#5244e1] transition-colors">
+                  <div className="relative group min-h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
+                    <div className="relative h-full p-4 sm:p-6 rounded-xl bg-white dark:bg-gray-900 border-2 border-[#5244e1]/30 hover:border-[#5244e1] transition-colors">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
                         <div>

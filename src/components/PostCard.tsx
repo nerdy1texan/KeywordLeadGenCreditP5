@@ -120,7 +120,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
 
       {/* Content */}
       <div className="mt-4">
-        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
+        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words text-sm sm:text-base">
           {post.text.split(/\s+/).map((word, index) => {
             if (word.match(/^(https?:\/\/[^\s]+)/)) {
               return (
@@ -194,23 +194,25 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       )}
 
       {/* Actions with updated gradient buttons */}
-      <div className="flex gap-3 mt-6">
-        <Button 
-          onClick={handleGenerateReply}
-          disabled={isGenerating || showCommentBuilder}
-          className="flex-1 bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
-        >
-          {isGenerating ? 'Generating...' : 'Generate Reply'}
-        </Button>
-        {post.latestReply && (
-          <Button
-            onClick={() => setShowCommentBuilder(true)}
-            disabled={showCommentBuilder}
-            className="flex-1 bg-[#5244e1] hover:bg-opacity-90 text-white"
+      <div className="flex flex-col sm:flex-row gap-3 mt-6">
+        <div className="flex-1 flex flex-col sm:flex-row gap-3">
+          <Button 
+            onClick={handleGenerateReply}
+            disabled={isGenerating || showCommentBuilder}
+            className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
           >
-            AI Reply Assistant
+            {isGenerating ? 'Generating...' : 'Generate Reply'}
           </Button>
-        )}
+          {post.latestReply && (
+            <Button
+              onClick={() => setShowCommentBuilder(true)}
+              disabled={showCommentBuilder}
+              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white"
+            >
+              AI Reply Assistant
+            </Button>
+          )}
+        </div>
         <Button 
           variant="outline"
           onClick={() => window.open(post.url, '_blank')}
