@@ -17,7 +17,7 @@ export function PostFilters({
   onTimeRangeChange
 }: PostFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
       <div className="flex flex-wrap gap-2">
         <Button
           variant={selectedSubreddit === 'all' ? 'default' : 'secondary'}
@@ -25,7 +25,7 @@ export function PostFilters({
           onClick={() => onSubredditChange('all')}
           className={`rounded-full ${
             selectedSubreddit === 'all' 
-              ? 'bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white hover:from-[var(--accent-light)] hover:to-[#c278c2]' 
+              ? 'bg-[#5244e1] text-white hover:bg-opacity-90' 
               : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
           }`}
         >
@@ -39,7 +39,7 @@ export function PostFilters({
             onClick={() => onSubredditChange(subreddit)}
             className={`rounded-full ${
               selectedSubreddit === subreddit 
-                ? 'bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white hover:from-[var(--accent-light)] hover:to-[#c278c2]' 
+                ? 'bg-[#5244e1] text-white hover:bg-opacity-90' 
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
             }`}
           >
@@ -49,10 +49,10 @@ export function PostFilters({
       </div>
 
       <Select value={timeRange} onValueChange={onTimeRangeChange}>
-        <SelectTrigger className="w-[180px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <SelectTrigger className="w-[180px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <SelectValue placeholder="Past 24 hours" />
         </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <SelectItem value="day">Past 24 hours</SelectItem>
           <SelectItem value="week">Past week</SelectItem>
           <SelectItem value="month">Past month</SelectItem>

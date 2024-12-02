@@ -100,7 +100,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900/90 border border-gray-200 dark:border-gray-800/50 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-700/50 transition-all w-full mb-6 shadow-sm hover:shadow-md">
+    <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 hover:border-[#5244e1] rounded-xl p-6 transition-all w-full mb-6 shadow-sm hover:shadow-md">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -145,7 +145,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       {/* Generated Reply section with updated styling */}
       {post.latestReply && (
         <div className="mt-6">
-          <div className="rounded-lg p-[1px] bg-gradient-to-r from-[var(--accent-base)] via-[#b06ab3] to-[var(--accent-base)]">
+          <div className="rounded-lg border-2 border-[#5244e1]/30">
             <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">Generated Reply</h4>
@@ -198,7 +198,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         <Button 
           onClick={handleGenerateReply}
           disabled={isGenerating || showCommentBuilder}
-          className="flex-1 bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          className="flex-1 bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
         >
           {isGenerating ? 'Generating...' : 'Generate Reply'}
         </Button>
@@ -206,7 +206,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
           <Button
             onClick={() => setShowCommentBuilder(true)}
             disabled={showCommentBuilder}
-            className="flex-1 bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white"
+            className="flex-1 bg-[#5244e1] hover:bg-opacity-90 text-white"
           >
             AI Reply Assistant
           </Button>
