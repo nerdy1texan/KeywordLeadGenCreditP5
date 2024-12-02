@@ -4,7 +4,6 @@ import { ROUTES } from "@/config/site";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronRight, Rocket } from "lucide-react";
-import { GeometricBackground } from '@/components/GeometricBackground';
 
 interface Hero2ClientProps {
   dictionary: {
@@ -21,7 +20,6 @@ interface Hero2ClientProps {
 export function Hero2Client({ dictionary: t }: Hero2ClientProps) {
   return (
     <section className="relative">
-      <GeometricBackground />
       <div className="pt-16">
         <div className="relative mx-auto max-w-7xl">
           <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-12 pb-8 text-center sm:px-6 md:py-20">

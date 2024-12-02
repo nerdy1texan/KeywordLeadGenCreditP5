@@ -81,8 +81,8 @@ export default function DashboardHeader({
         </Dialog>
       </Transition.Root>
 
-      <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-900/10 dark:border-slate-50/[0.06]">
-        <div className="relative flex h-20 items-center justify-between bg-base-100 px-8 backdrop-blur-md">
+      <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-900/10 dark:border-slate-50/[0.06] bg-white dark:bg-gray-900">
+        <div className="relative flex h-20 items-center justify-between bg-white dark:bg-gray-900 px-8 backdrop-blur-md">
           <div>
             <div className="hidden flex-shrink-0 items-center gap-2 md:flex">
               <ThemedLogo className="block h-10 w-auto" />
@@ -129,7 +129,7 @@ export default function DashboardHeader({
                           {() => (
                             <Menu.Button as={Link} href={menu.path}>
                               <div
-                                className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium capitalize hover:bg-primary hover:text-primary-content"
+                                className={`group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium capitalize hover:bg-primary hover:text-primary-content`}
                                 style={{
                                   whiteSpace: "pre",
                                 }}
@@ -145,7 +145,7 @@ export default function DashboardHeader({
                     {() => (
                       <button
                         onClick={() => signOut()}
-                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium capitalize hover:bg-primary hover:text-primary-content"
+                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
                       >
                         Sign Out
                       </button>
