@@ -14,9 +14,7 @@ interface SubredditGridProps {
 }
 
 const getRelevanceBadgeVariant = (score: number) => {
-  if (score >= 90) return "success-gradient";
-  if (score >= 80) return "primary-gradient";
-  return "secondary-gradient";
+  return "primary";
 };
 
 export function SubredditGrid({ subreddits, isLoading, onSubredditsChange }: SubredditGridProps) {
@@ -117,40 +115,34 @@ export function SubredditGrid({ subreddits, isLoading, onSubredditsChange }: Sub
           {sortedSubreddits.map((subreddit) => (
             <div 
               key={subreddit.id || subreddit.name} 
-              className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-4 rounded-lg shadow-lg border-2 border-transparent bg-clip-padding"
-              style={{ 
-                backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
-                backgroundOrigin: 'border-box',
-                backgroundClip: 'padding-box, border-box'
-              }}
+              className="relative bg-white dark:bg-[var(--primary-dark)] p-4 rounded-lg shadow-lg border border-gray-200 dark:border-gray-800"
             >
               <div className="flex justify-between items-start mb-2">
                 <a 
                   href={subreddit.url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-white hover:text-[var(--accent-base)] font-medium transition-colors"
+                  className="text-gray-900 dark:text-white hover:text-[#5244e1] font-medium transition-colors"
                 >
                   r/{subreddit.name}
                 </a>
-                <Badge variant="secondary" className="bg-[var(--primary-dark)]/60 text-white">
+                <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
                   {(subreddit.memberCount || 0).toLocaleString()} members
                 </Badge>
               </div>
-              <p className="text-sm text-gray-300 line-clamp-2">
+              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                 {subreddit.description || 'No description available'}
               </p>
               <div className="mt-2 flex justify-between items-center">
                 <Badge 
-                  variant={getRelevanceBadgeVariant(subreddit.relevanceScore)} 
-                  className="bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] text-white"
+                  className="bg-[#5244e1] text-white"
                 >
                   Relevance: {Math.round(subreddit.relevanceScore)}%
                 </Badge>
                 <Switch
                   checked={subreddit.isMonitored}
                   onChange={() => handleToggle(subreddit)}
-                  className="mt-2"
+                  className="data-[state=checked]:bg-[#5244e1]"
                 />
               </div>
             </div>

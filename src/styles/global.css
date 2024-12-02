@@ -101,7 +101,7 @@
   }
 
   .btn-gradient {
-    @apply btn bg-gradient-to-r from-[var(--accent-base)] to-[#b06ab3] hover:from-[var(--accent-light)] hover:to-[#c278c2] text-white;
+    @apply btn bg-[var(--accent-base)] hover:bg-[var(--accent-light)] text-white;
   }
 }
 

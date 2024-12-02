@@ -334,21 +334,16 @@ export default function ProductInfoForm() {
 
   return (
     <div className="space-y-6">
-      <Card className="relative bg-[var(--primary-dark)]/80 backdrop-blur-lg p-6 shadow-lg border-2 border-transparent bg-clip-padding"
-            style={{ 
-              backgroundImage: `linear-gradient(var(--primary-dark)/80, var(--primary-dark)/80), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
-              backgroundOrigin: 'border-box',
-              backgroundClip: 'padding-box, border-box'
-            }}>
+      <Card className="bg-white dark:bg-[var(--primary-dark)] p-6 shadow-lg border border-gray-200 dark:border-gray-800">
         <form onSubmit={formik.handleSubmit} className="space-y-6">
           {/* Product Name */}
           <div>
-            <label className="block text-sm font-medium mb-1">Product Name</label>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Product Name</label>
             <Input
               name="name"
               value={formik.values.name}
               onChange={formik.handleChange}
-              className="w-full"
+              className="w-full text-gray-900 dark:text-white bg-white dark:bg-[var(--primary-dark)] border-gray-200 dark:border-gray-800"
             />
             {formik.touched.name && formik.errors.name && (
               <Alert type="error">{formik.errors.name}</Alert>
@@ -357,18 +352,18 @@ export default function ProductInfoForm() {
 
           {/* Product URL */}
           <div>
-            <label className="block text-sm font-medium mb-1">Product URL</label>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Product URL</label>
             <div className="flex gap-2">
               <Input
                 name="url"
                 value={formik.values.url}
                 onChange={formik.handleChange}
-                className="flex-grow"
+                className="flex-grow text-gray-900 dark:text-white bg-white dark:bg-[var(--primary-dark)] border-gray-200 dark:border-gray-800"
               />
               <Button
                 onClick={handleAutoFill}
                 disabled={autoFilling}
-                className="min-w-[120px] bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white"
+                className="min-w-[120px] bg-[#5244e1] hover:bg-opacity-90 text-white"
               >
                 {autoFilling ? (
                   <>
@@ -384,37 +379,45 @@ export default function ProductInfoForm() {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Description</label>
             <textarea
               name="description"
               value={formik.values.description}
               onChange={formik.handleChange}
               rows={4}
-              className="w-full rounded-md border border-input bg-background px-3 py-2"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-[var(--primary-dark)] border-gray-200 dark:border-gray-800"
             />
           </div>
 
           {/* Keywords */}
           <div>
-            <label className="block text-sm font-medium mb-1">Keywords</label>
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-1">Keywords</label>
             <div className="flex gap-2 mb-2">
               <Input
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && handleAddKeyword()}
                 placeholder="Add keyword"
-                className="flex-grow"
+                className="flex-grow text-gray-900 dark:text-white bg-white dark:bg-[var(--primary-dark)] border-gray-200 dark:border-gray-800"
               />
-              <Button onClick={handleAddKeyword} type="button">
-                <Plus className="w-4 h-4" />
+              <Button 
+                onClick={handleAddKeyword} 
+                type="button"
+                className="w-10 h-10 bg-[#5244e1] hover:bg-opacity-90 text-white p-0"
+              >
+                <Plus className="w-5 h-5" />
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               {formik.values.keywords.map((keyword) => (
-                <Badge key={keyword} variant="secondary" className="flex items-center gap-1">
+                <Badge 
+                  key={keyword} 
+                  variant="secondary" 
+                  className="bg-[#5244e1] text-white flex items-center gap-1"
+                >
                   {keyword}
                   <X
-                    className="w-3 h-3 cursor-pointer"
+                    className="w-3 h-3 cursor-pointer hover:text-gray-200"
                     onClick={() => handleRemoveKeyword(keyword)}
                   />
                 </Badge>
@@ -450,23 +453,25 @@ export default function ProductInfoForm() {
                 <Button 
                   onClick={handleAddFeature} 
                   type="button"
-                  size="icon"
-                  className="w-10 h-10"
+                  className="w-10 h-10 bg-[#5244e1] hover:bg-opacity-90 text-white p-0"
                 >
-                  +
+                  <Plus className="w-5 h-5" />
                 </Button>
               </div>
               {newPlan.features.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {newPlan.features.map((feature, index) => (
-                    <Badge key={index} variant="secondary">
+                    <Badge 
+                      key={index} 
+                      className="bg-[#5244e1] text-white"
+                    >
                       {feature}
                       <button
                         onClick={() => setNewPlan({
                           ...newPlan,
                           features: newPlan.features.filter((_, i) => i !== index)
                         })}
-                        className="ml-2"
+                        className="ml-2 hover:text-gray-200"
                       >
                         ×
                       </button>
@@ -478,7 +483,7 @@ export default function ProductInfoForm() {
                 type="button"
                 onClick={handleAddPlan}
                 disabled={!newPlan.name || newPlan.features.length === 0}
-                className="w-full"
+                className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white disabled:opacity-50 disabled:bg-[#5244e1]"
               >
                 Add Plan
               </Button>
@@ -537,14 +542,7 @@ export default function ProductInfoForm() {
               type="button"
               onClick={handleFindSubreddits}
               disabled={isSearchingSubreddits || !formik.values.description}
-              className="relative px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
-                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
-                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
-                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10
-                         after:absolute after:inset-0 after:rounded-lg after:bg-gradient-to-r after:from-[var(--accent-base)] 
-                         after:via-[#b06ab3] after:to-[var(--accent-base)] after:opacity-0 after:transition-opacity 
-                         after:duration-300 after:animate-gradient-x after:blur-xl after:-z-20
-                         hover:after:opacity-100"
+              className="bg-[#5244e1] hover:bg-opacity-90 text-white"
             >
               {isSearchingSubreddits ? (
                 <>
@@ -562,10 +560,7 @@ export default function ProductInfoForm() {
             <Button
               type="submit"
               disabled={formik.isSubmitting}
-              className="relative px-4 py-2 rounded-lg font-semibold text-white transition-all duration-300 ease-in-out 
-                         hover:translate-y-[-2px] hover:shadow-[0_10px_20px_-10px_rgba(var(--accent-base-rgb),0.5)]
-                         before:absolute before:inset-0 before:rounded-lg before:bg-gradient-to-r before:from-[var(--accent-base)] 
-                         before:via-[#b06ab3] before:to-[var(--accent-base)] before:animate-gradient-x before:-z-10"
+              className="bg-[#5244e1] hover:bg-opacity-90 text-white"
             >
               Save Product Info
             </Button>
