@@ -49,7 +49,7 @@ export default function DashboardHeader({
             leaveFrom="translate-x-0"
             leaveTo="-translate-x-full"
           >
-            <div className="relative flex w-56 flex-col bg-gray-900">
+            <div className="relative flex w-56 flex-col bg-white dark:bg-gray-900">
               <Transition.Child
                 as={Fragment}
                 enter="ease-in-out duration-300"
