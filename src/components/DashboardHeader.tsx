@@ -98,12 +98,7 @@ export default function DashboardHeader({
 
           <div className="flex items-center justify-end gap-6">
             <Link href={ROUTES.tutorials.path}>
-              <div className="btn btn-outline border-2 border-transparent bg-clip-padding text-white dark:text-white hover:text-gray-800 hover:bg-white"
-                   style={{ 
-                     backgroundImage: `linear-gradient(transparent, transparent), linear-gradient(to right, var(--accent-base), #b06ab3, var(--accent-base))`,
-                     backgroundOrigin: 'border-box',
-                     backgroundClip: 'padding-box, border-box'
-                   }}>
+              <div className="bg-[#5244e1] hover:bg-opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                 Tutorials
               </div>
             </Link>
@@ -150,7 +145,7 @@ export default function DashboardHeader({
                     {() => (
                       <button
                         onClick={() => signOut()}
-                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-primary hover:text-primary-content"
                       >
                         Sign Out
                       </button>
