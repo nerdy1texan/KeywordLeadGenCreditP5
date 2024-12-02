@@ -145,7 +145,7 @@ export default function DashboardHeader({
                     {() => (
                       <button
                         onClick={() => signOut()}
-                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-primary hover:text-primary-content"
                       >
                         Sign Out
                       </button>
