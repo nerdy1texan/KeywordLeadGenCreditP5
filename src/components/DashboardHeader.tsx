@@ -49,7 +49,7 @@ export default function DashboardHeader({
             leaveFrom="translate-x-0"
             leaveTo="-translate-x-full"
           >
-            <div className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-800">
+            <div className="relative flex w-56 flex-col bg-gray-900">
               <Transition.Child
                 as={Fragment}
                 enter="ease-in-out duration-300"
@@ -145,7 +145,7 @@ export default function DashboardHeader({
                     {() => (
                       <button
                         onClick={() => signOut()}
-                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-primary hover:text-primary-content"
+                        className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
                       >
                         Sign Out
                       </button>

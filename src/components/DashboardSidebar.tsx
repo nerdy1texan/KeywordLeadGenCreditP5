@@ -37,16 +37,16 @@ export default function DashboardSidebar({
     });
   }, [pathname]);
   return (
-    <div className="flex min-h-0 flex-1 flex-col w-56">
+    <div className="flex min-h-0 flex-1 flex-col w-56 bg-gray-900">
       <div
         className={clsx(
           !isMobile && "hidden",
-          "relative flex flex-shrink-0 items-center bg-base-100 p-3"
+          "relative flex flex-shrink-0 items-center p-3"
         )}
       >
         <ThemedLogo className="block h-6 w-auto" />
       </div>
-      <div className="shadow-inset relative flex flex-shrink-0 bg-base-100 p-3">
+      <div className="shadow-inset relative flex flex-shrink-0 p-3">
         <a
           href={ROUTES.settings.path}
           className="group block w-full flex-shrink-0 overflow-hidden"
@@ -56,15 +56,15 @@ export default function DashboardSidebar({
               <Avatar user={user} className="inline-block h-8 w-8" />
             </div>
             <div className="ml-2">
-              <p className="text-clip text-sm font-medium">{user.name}</p>
-              <p className="text-xs font-medium text-secondary">
+              <p className="text-clip text-lg font-medium">{user.name}</p>
+              <p className="text-sm font-medium text-secondary">
                 {getCurrentPlanOffering(subscription).productName}
               </p>
             </div>
           </div>
         </a>
       </div>
-      <div className="relative flex flex-1 flex-col overflow-y-auto bg-base-100 pb-4">
+      <div className="relative flex flex-1 flex-col overflow-y-auto pb-4">
         <nav className="mt-4 flex-1 space-y-1 px-2">
           {MENUS.dashboardNavigation.map((menu, index) => {
             const Icon = (icons as any)[menu.icon];
@@ -77,11 +77,11 @@ export default function DashboardSidebar({
                 >
                   <div
                     className={clsx(
-                      activeMenuIndex == index && "shadow-inset bg-base-200",
-                      "group flex items-center rounded-md px-2 py-2 font-medium"
+                      activeMenuIndex == index && "shadow-inset bg-base-200 w-full",
+                      "group flex items-center rounded-md px-2 py-3 font-medium text-lg w-full"
                     )}
                   >
-                    <Icon className="mr-2 h-5 w-5 flex-shrink-0"></Icon>
+                    <Icon className="mr-2 h-6 w-6 flex-shrink-0"></Icon>
                     <div>{menu.title}</div>
                   </div>
                 </Link>
@@ -91,9 +91,9 @@ export default function DashboardSidebar({
         <div className="px-2 mt-2">
           <button
             onClick={() => signOut()}
-            className="group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium hover:bg-base-200"
+            className="group flex w-full items-center rounded-md px-2 py-3 text-sm font-medium hover:bg-base-200"
           >
-            <icons.LogOut className="mr-2 h-5 w-5 flex-shrink-0" />
+            <icons.LogOut className="mr-2 h-6 w-6 flex-shrink-0" />
             <div>Sign Out</div>
           </button>
         </div>
