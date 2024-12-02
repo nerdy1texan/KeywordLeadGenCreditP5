@@ -58,7 +58,7 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
       if (onReplyUpdate) {
         onReplyUpdate({
           ...updatedPost,
-          product: post.product // Maintain the existing product data
+          product: post.product
         });
       }
       
@@ -178,72 +178,51 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
         }
       }}
     >
-      <DialogContent className="sm:max-w-[800px] bg-gray-950/90 backdrop-blur-xl border border-gray-800/50 shadow-2xl transform-gpu">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-50 rounded-lg animate-gradient-slow" />
-        
-        <DialogHeader className="relative z-10">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-2xl transform-gpu overflow-hidden flex flex-col">
+        <DialogHeader className="shrink-0">
           <div className="flex justify-between items-center">
-            <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+            <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               AI Reply Assistant
             </DialogTitle>
           </div>
         </DialogHeader>
         
-        <div className="p-6 flex flex-col gap-6 relative z-10">
-          <div className="relative transform-gpu transition-all duration-300 hover:scale-[1.01]">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-xl blur-sm" />
-            <div className="relative bg-gray-900/80 p-5 rounded-xl border border-gray-800/50 backdrop-blur-xl">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-6 overflow-y-auto">
+          <div className="relative">
+            <div className="bg-gray-100 dark:bg-gray-800 p-4 sm:p-5 rounded-xl border border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-start mb-2">
-                <h4 className="text-sm font-medium text-gray-400">Current Reply</h4>
+                <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Reply</h4>
                 <div className="flex items-center gap-2">
                   {!isEditing ? (
                     <>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
+                        onClick={() => setIsEditing(true)}
+                        className="border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                        <Edit className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300" 
-                          onClick={() => setIsEditing(true)}
-                          style={{
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                          }}
-                        />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
                         onClick={handleCopyToClipboard}
+                        className="border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                        <Copy className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300"
-                          style={{
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                          }}
-                        />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </>
                   ) : (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="relative group overflow-hidden border border-gray-800/50 hover:border-transparent transition-all duration-300"
                       onClick={async () => {
                         await saveReply(currentReply);
                         setIsEditing(false);
                       }}
+                      className="border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                      <Check className="h-4 w-4 relative z-10 bg-gradient-to-r from-blue-400 to-purple-400 group-hover:text-white transition-all duration-300"
-                        style={{
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                        }}
-                      />
+                      <Check className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -253,11 +232,10 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
                 <Textarea
                   value={currentReply}
                   onChange={(e) => setCurrentReply(e.target.value)}
-                  className="min-h-[300px] w-full bg-gray-900 whitespace-pre-wrap resize-y"
-                  style={{ whiteSpace: 'pre-wrap' }}
+                  className="min-h-[300px] w-full bg-gray-100 dark:bg-gray-800 resize-y"
                 />
               ) : (
-                <div className="min-h-[150px] w-full bg-gray-900 rounded-md p-4 whitespace-pre-wrap">
+                <div className="min-h-[150px] w-full bg-gray-100 dark:bg-gray-800 rounded-md p-4">
                   {currentReply}
                 </div>
               )}
@@ -266,61 +244,58 @@ export function CommentBuilder({ isOpen, onClose, post, onReplyUpdate }: Comment
 
           {!isEditing && (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                 {Object.entries(improvementPrompts).map(([label, prompt]) => (
                   <Button
                     key={label}
                     variant="outline"
                     disabled={isImproving}
                     onClick={() => handleInputChange({ target: { value: prompt } } as any)}
-                    className="relative group overflow-hidden bg-gray-900/50 border border-gray-800/50 hover:border-transparent transition-all duration-300"
+                    className="border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                    <span className="relative z-10 font-medium bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:text-white transition-all duration-300">
-                      {label}
-                    </span>
+                    {label}
                   </Button>
                 ))}
               </div>
 
-              <form onSubmit={handleSubmit} className="flex gap-3">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
                 <Textarea
                   value={input}
                   onChange={handleInputChange}
                   placeholder="Type custom instructions for improving the reply..."
-                  className="flex-1 bg-gray-900/50 border border-gray-800/50 backdrop-blur-sm transition-all duration-300 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 min-h-[80px]"
                   disabled={isImproving}
                 />
                 <Button 
                   type="submit"
                   disabled={isImproving}
-                  className="self-end bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
+                  className="bg-[#5244e1] hover:bg-opacity-90 text-white sm:w-24"
                 >
                   {isImproving ? 'Improving...' : 'Improve'}
                 </Button>
               </form>
-
-              <div className="flex justify-end gap-3 mt-2">
-                <Button 
-                  variant="outline" 
-                  onClick={onClose}
-                  disabled={isImproving || isSaving}
-                  className="border border-gray-800/50 hover:bg-gray-800/30 transition-all duration-300"
-                >
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleSaveAndClose}
-                  disabled={isImproving || isSaving}
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transform-gpu transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save & Close'}
-                </Button>
-              </div>
             </>
           )}
+        </div>
+
+        <div className="shrink-0 border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900 flex justify-end gap-3">
+          <Button 
+            variant="outline" 
+            onClick={onClose}
+            disabled={isImproving || isSaving}
+            className="border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveAndClose}
+            disabled={isImproving || isSaving}
+            className="bg-[#5244e1] hover:bg-opacity-90 text-white"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save & Close'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
