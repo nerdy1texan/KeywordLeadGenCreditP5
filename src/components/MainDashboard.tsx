@@ -236,7 +236,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                             </span>
                           </div>
                         </div>
-                        <Badge className="bg-[#5244e1] text-white">
+                        <Badge className="bg-[#5244e1] text-white whitespace-nowrap min-w-[90px] text-center">
                           {subreddit.relevanceScore}% match
                         </Badge>
                       </div>
