@@ -24,6 +24,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isReplyExpanded, setIsReplyExpanded] = useState(false);
   const { toast } = useToast();
   const [post, setPost] = useState<ExtendedRedditPost>({
     ...initialPost,
@@ -35,6 +36,11 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
   const displayText = !isExpanded && shouldTruncate 
     ? `${post.text.slice(0, MAX_CHARS)}...` 
     : post.text;
+
+  const shouldTruncateReply = post.latestReply && post.latestReply.length > MAX_CHARS;
+  const displayReply = !isReplyExpanded && shouldTruncateReply && post.latestReply
+    ? `${post.latestReply.slice(0, MAX_CHARS)}...`
+    : post.latestReply;
 
   const handleGenerateReply = async () => {
     try {
@@ -151,7 +157,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
           <Button
             variant="ghost"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1"
+            className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1 bg-[#5244e1]/10 hover:bg-[#5244e1]/20 px-2 py-1 rounded-md"
           >
             {isExpanded ? (
               <>
@@ -200,8 +206,27 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
                 </div>
               </div>
               <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap">
-                {post.latestReply}
+                {displayReply}
               </p>
+              {shouldTruncateReply && (
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsReplyExpanded(!isReplyExpanded)}
+                  className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1 bg-[#5244e1]/10 hover:bg-[#5244e1]/20 px-2 py-1 rounded-md"
+                >
+                  {isReplyExpanded ? (
+                    <>
+                      Show less
+                      <ChevronUp className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Show full reply
+                      <ChevronDown className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -219,23 +244,26 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         />
       )}
 
-      {/* Actions with updated gradient buttons */}
+      {/* Actions with updated button logic */}
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <div className="flex-1 flex flex-col sm:flex-row gap-3">
-          <Button 
-            onClick={handleGenerateReply}
-            disabled={isGenerating || showCommentBuilder}
-            className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
-          >
-            {isGenerating ? 'Generating...' : 'Generate Reply'}
-          </Button>
+          {!post.latestReply && (
+            <Button 
+              onClick={handleGenerateReply}
+              disabled={isGenerating}
+              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
+            >
+              {isGenerating ? 'Generating...' : 'Generate Reply'}
+            </Button>
+          )}
           {post.latestReply && (
             <Button
               onClick={() => setShowCommentBuilder(true)}
               disabled={showCommentBuilder}
-              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white"
+              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white flex items-center justify-center gap-2"
             >
-              AI Reply Assistant
+              <span>AI Reply Assistant</span>
+              {showCommentBuilder && <ChevronDown className="h-4 w-4" />}
             </Button>
           )}
         </div>
