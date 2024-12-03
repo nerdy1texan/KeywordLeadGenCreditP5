@@ -1,7 +1,7 @@
 import { RedditPost, Product } from '@/types/product';
 import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { Star, ExternalLink, Copy, Check } from 'lucide-react';
+import { Star, ExternalLink, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import { useToast } from './ui/use-toast';
@@ -23,11 +23,18 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { toast } = useToast();
   const [post, setPost] = useState<ExtendedRedditPost>({
     ...initialPost,
     latestReply: initialPost.latestReply ?? null
   });
+
+  const MAX_CHARS = 300;
+  const shouldTruncate = post.text.length > MAX_CHARS;
+  const displayText = !isExpanded && shouldTruncate 
+    ? `${post.text.slice(0, MAX_CHARS)}...` 
+    : post.text;
 
   const handleGenerateReply = async () => {
     try {
@@ -121,7 +128,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       {/* Content */}
       <div className="mt-4">
         <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words text-sm sm:text-base">
-          {post.text.split(/\s+/).map((word, index) => {
+          {displayText.split(/\s+/).map((word, index) => {
             if (word.match(/^(https?:\/\/[^\s]+)/)) {
               return (
                 <span key={index}>
@@ -140,6 +147,25 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
             return word + ' ';
           })}
         </p>
+        {shouldTruncate && (
+          <Button
+            variant="ghost"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1"
+          >
+            {isExpanded ? (
+              <>
+                Show less
+                <ChevronUp className="h-4 w-4" />
+              </>
+            ) : (
+              <>
+                Show full post
+                <ChevronDown className="h-4 w-4" />
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Generated Reply section with updated styling */}
