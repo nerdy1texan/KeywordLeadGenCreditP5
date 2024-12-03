@@ -333,7 +333,7 @@ export default function ProductInfoForm() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl mx-auto">
       <Card className="bg-white dark:bg-[var(--primary-dark)] p-6 shadow-lg border border-gray-200 dark:border-gray-800">
         <form onSubmit={formik.handleSubmit} className="space-y-6">
           {/* Product Name */}

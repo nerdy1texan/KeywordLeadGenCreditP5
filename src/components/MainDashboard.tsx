@@ -260,17 +260,20 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                         >
                           View Posts →
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`https://reddit.com/r/${subreddit.name}`, '_blank');
-                          }}
+                        <a 
+                          href={subreddit.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          Visit Reddit
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                          >
+                            Visit Reddit
+                          </Button>
+                        </a>
                       </div>
                     </div>
                   </div>
