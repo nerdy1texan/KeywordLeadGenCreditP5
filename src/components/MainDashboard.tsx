@@ -221,33 +221,32 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                   }))}
                   className="cursor-pointer"
                 >
-                  <div className="relative group min-h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
-                    <div className="relative h-full p-4 sm:p-6 rounded-xl bg-white dark:bg-gray-900 border-2 border-[#5244e1]/30 hover:border-[#5244e1] transition-colors">
+                  <div className="relative group h-[280px] transform transition-all duration-200 hover:scale-[1.02]">
+                    <div className="relative h-full p-4 sm:p-6 rounded-xl bg-white dark:bg-gray-900 border-2 border-[#5244e1]/30 hover:border-[#5244e1] transition-colors flex flex-col">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                        <div className="max-w-[70%]">
+                          <h3 className="text-lg font-medium text-gray-900 dark:text-white truncate">
                             r/{subreddit.name}
                           </h3>
                           <div className="flex items-center gap-2 mt-1">
-                            <UsersIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-300">
+                            <UsersIcon className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                            <span className="text-sm text-gray-600 dark:text-gray-300 truncate">
                               {(subreddit.memberCount || 0).toLocaleString()} members
                             </span>
                           </div>
                         </div>
-                        <Badge className="bg-[#5244e1] text-white whitespace-nowrap min-w-[90px] text-center">
-                          {subreddit.relevanceScore}% match
-                        </Badge>
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm text-gray-600 dark:text-gray-300 flex-grow line-clamp-3">
-                        {subreddit.description || 'No description available'}
-                      </p>
+                      <div className="flex-grow overflow-hidden">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-4">
+                          {subreddit.description || 'No description available'}
+                        </p>
+                      </div>
 
                       {/* Footer */}
-                      <div className="mt-4 flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                         <Button
                           variant="ghost"
                           className="text-[#5244e1] hover:bg-[#5244e1]/10 transition-colors"
