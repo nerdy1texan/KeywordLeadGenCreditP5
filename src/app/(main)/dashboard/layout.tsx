@@ -20,7 +20,7 @@ export default async function Layout({ children }: LayoutProps) {
   return (
     <div className="h-screen overflow-hidden">
       <DashboardHeader user={session.user} isAdmin={isAdmin(session.user)} />
-      <div className="hidden md:fixed md:bottom-0 md:top-20 md:flex md:w-72 md:flex-col">
+      <div className="hidden md:fixed md:bottom-0 md:top-20 md:flex md:w-12 hover:w-72 transition-all duration-300 z-20 bg-white dark:bg-gray-900 shadow-lg">
         <DashboardSidebar
           isMobile={false}
           user={session.user}
@@ -29,7 +29,7 @@ export default async function Layout({ children }: LayoutProps) {
         />
       </div>
       <main
-        className="fixed bottom-0 left-0 right-0 top-20 overflow-y-auto md:left-72"
+        className="fixed bottom-0 left-0 right-0 top-20 overflow-y-auto md:left-12"
         data-aos="fade-up"
         data-aos-delay="100"
       >

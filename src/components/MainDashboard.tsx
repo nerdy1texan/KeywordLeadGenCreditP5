@@ -167,7 +167,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   }, [fetchPosts]);
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6 max-w-[2000px] mx-auto">
       {!productId ? (
         <div className="text-center py-12">
           <p className="text-gray-400">Loading...</p>
@@ -209,7 +209,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             <h2 className="text-xl font-semibold mb-2">Monitored Communities</h2>
             <p className="text-gray-400 mb-4">Click on a community card or use the tabs below to filter posts</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
               {monitoredSubreddits.map((subreddit) => (
                 <motion.div
                   key={subreddit.name}
