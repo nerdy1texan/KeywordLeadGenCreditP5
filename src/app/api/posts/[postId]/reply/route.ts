@@ -95,27 +95,55 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Enhanced system prompt for product-focused replies
+    const systemPrompt = `You are a helpful marketing assistant for ${post.product.name}. 
+    Your goal is to generate authentic, helpful responses that naturally promote the product.
+    
+    Product Details:
+    - Name: ${post.product.name}
+    - Description: ${post.product.description}
+    - Key Features: ${post.product.keywords.join(', ')}
+    - Website: ${post.product.url}
+    
+    Guidelines:
+    1. Be authentic and conversational
+    2. Address the user's specific points/questions
+    3. Naturally weave in product benefits
+    4. Always include the product URL near the end
+    5. Don't be overly salesy or pushy
+    6. Keep responses helpful and relevant
+    7. Use a friendly, professional tone
+    
+    Format your response to:
+    1. Show understanding/empathy
+    2. Provide value/advice
+    3. Connect to product solution
+    4. End with a call-to-action and URL`;
+
     // Generate reply using OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: `You are a helpful assistant generating a response for ${post.product.name}. 
-                   Use the following product details:
-                   Description: ${post.product.description}
-                   Keywords: ${post.product.keywords.join(', ')}
-                   URL: ${post.product.url}`
+          content: systemPrompt
         },
         {
           role: "user",
-          content: `Generate a friendly and engaging reply to this ${type} post: "${post.text}"`
+          content: `Generate a natural, helpful reply to this ${type} post that subtly promotes our product: "${post.text}"`
         }
       ],
-      max_tokens: 150,
+      temperature: 0.7, // Slightly increased for more natural responses
+      max_tokens: 250, // Increased for more detailed responses
     });
 
-    const reply = completion.choices[0]?.message?.content || '';
+    let reply = completion.choices[0]?.message?.content || '';
+
+    // Ensure URL is included if not already present
+    if (!reply.includes(post.product.url || '')) {
+      reply = `${reply}\n\nLearn more at: ${post.product.url}`;
+    }
+
     console.log('Generated reply:', reply);
 
     // Update the post with the generated reply

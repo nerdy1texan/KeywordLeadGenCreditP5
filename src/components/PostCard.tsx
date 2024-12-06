@@ -1,7 +1,7 @@
 import { RedditPost, Product } from '@/types/product';
 import { Button } from './ui/button';
 import { formatDistanceToNow } from 'date-fns';
-import { Star, ExternalLink, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, ExternalLink, Copy, Check, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
 import { Checkbox } from './ui/checkbox';
 import { useToast } from './ui/use-toast';
@@ -27,6 +27,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReplyExpanded, setIsReplyExpanded] = useState(false);
+  const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const { toast } = useToast();
   const [post, setPost] = useState<ExtendedRedditPost>({
     ...initialPost,
@@ -237,6 +238,15 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => setShowCommentBuilder(true)}
+                    className="text-[#5244e1] hover:text-[#5244e1]/90"
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    AI Reply Assistant
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleCopyReply}
                     className="text-gray-400 hover:text-gray-300"
                   >
@@ -264,7 +274,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
                 <Button
                   variant="ghost"
                   onClick={() => setIsReplyExpanded(!isReplyExpanded)}
-                  className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1 bg-[#5244e1]/10 hover:bg-[#5244e1]/20 px-2 py-1 rounded-md"
+                  className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1"
                 >
                   {isReplyExpanded ? (
                     <>
@@ -305,6 +315,31 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
           <ExternalLink className="h-4 w-4" />
         </Button>
       </div>
+
+      {/* Comment Builder Modal */}
+      {showCommentBuilder && (
+        <CommentBuilder
+          isOpen={showCommentBuilder}
+          onClose={() => setShowCommentBuilder(false)}
+          post={{
+            ...post,
+            product: {
+              name: post.product.name,
+              description: post.product.description,
+              keywords: post.product.keywords,
+              url: post.product.url
+            }
+          }}
+          onReplyUpdate={(updatedPost) => {
+            setPost(prev => ({
+              ...prev,
+              latestReply: updatedPost.latestReply
+            }));
+            setShowCommentBuilder(false);
+            toast('Reply updated successfully', 'success');
+          }}
+        />
+      )}
     </div>
   );
 }
