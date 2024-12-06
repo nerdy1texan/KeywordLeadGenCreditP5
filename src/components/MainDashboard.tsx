@@ -179,8 +179,10 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   }, []);
 
   const breakpointColumnsObj = {
-    default: 3,
-    1100: 2,
+    default: 4,
+    3000: 4,
+    2000: 3,
+    1200: 2,
     700: 1
   };
 
@@ -418,16 +420,13 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             ) : (
               <Masonry
                 breakpointCols={breakpointColumnsObj}
-                className="my-masonry-grid"
-                columnClassName="my-masonry-grid_column"
+                className="masonry-grid"
+                columnClassName="masonry-grid_column"
               >
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}
-                    post={{
-                      ...post,
-                      engagement: post.engagement as "unseen" | "seen" | "engaged" | "converted" | "HOT" | undefined
-                    }}
+                    post={post}
                     onReplyGenerated={() => {
                       handleRefresh();
                     }}
@@ -444,8 +443,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             ) : (
               <Masonry
                 breakpointCols={breakpointColumnsObj}
-                className="my-masonry-grid"
-                columnClassName="my-masonry-grid_column"
+                className="masonry-grid"
+                columnClassName="masonry-grid_column"
               >
                 {tweets.map((tweet) => {
                   const postData = {

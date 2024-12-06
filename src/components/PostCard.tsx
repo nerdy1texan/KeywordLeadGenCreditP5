@@ -10,6 +10,8 @@ import { CommentBuilder } from './CommentBuilder';
 interface PostCardProps {
   post: RedditPost & {
     product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+    authorUsername?: string;
+    latestReply?: string | null;
   };
   onReplyGenerated: (reply: string) => void;
 }
@@ -152,6 +154,9 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
     }
   };
 
+  // Add a helper to determine if the post is a tweet
+  const isTweet = !initialPost.subreddit && initialPost.authorUsername;
+
   return (
     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 hover:border-[#5244e1] rounded-xl p-6 transition-all w-full mb-6 shadow-sm hover:shadow-md">
       {/* Header */}
@@ -161,7 +166,11 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
             {post.title}
           </h3>
           <div className="flex items-center gap-2 mt-2 text-sm text-gray-500 dark:text-gray-400">
-            <span>r/{post.subreddit}</span>
+            {isTweet ? (
+              <span>@{post.authorUsername}</span>
+            ) : (
+              <span>r/{post.subreddit}</span>
+            )}
             <span>•</span>
             <span>{formatDistanceToNow(new Date(post.createdAt))} ago</span>
           </div>
