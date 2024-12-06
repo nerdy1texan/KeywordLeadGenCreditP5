@@ -11,7 +11,7 @@ interface PostCardProps {
   post: RedditPost & {
     product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
   };
-  onGenerateReply: () => void;
+  onReplyGenerated: (reply: string) => void;
 }
 
 type ExtendedRedditPost = RedditPost & { 
@@ -19,7 +19,7 @@ type ExtendedRedditPost = RedditPost & {
   latestReply: string | null;
 };
 
-export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) {
+export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
@@ -30,6 +30,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
     ...initialPost,
     latestReply: initialPost.latestReply ?? null
   });
+  const [isGeneratingReply, setIsGeneratingReply] = useState(false);
 
   const MAX_CHARS = 300;
   const shouldTruncate = post.text.length > MAX_CHARS;
@@ -110,6 +111,35 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
       latestReply: updatedPost.latestReply ?? null
     });
     setShowCommentBuilder(false);
+  };
+
+  const generateReply = async () => {
+    setIsGeneratingReply(true);
+    try {
+      const response = await fetch(`/api/posts/${post.id}/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'twitter', // or determine dynamically based on post type
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate reply');
+      
+      const data = await response.json();
+      if (onReplyGenerated) {
+        onReplyGenerated(data.reply);
+      }
+      
+      // Refresh the post data to show the new reply
+      // You might want to implement a refresh mechanism here
+    } catch (error) {
+      console.error('Error generating reply:', error);
+    } finally {
+      setIsGeneratingReply(false);
+    }
   };
 
   return (
@@ -237,7 +267,7 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
           isOpen={showCommentBuilder}
           onClose={() => {
             setShowCommentBuilder(false);
-            onGenerateReply();
+            handleGenerateReply();
           }}
           post={post}
           onReplyUpdate={handleReplyUpdate}
@@ -249,11 +279,11 @@ export function PostCard({ post: initialPost, onGenerateReply }: PostCardProps) 
         <div className="flex-1 flex flex-col sm:flex-row gap-3">
           {!post.latestReply && (
             <Button 
-              onClick={handleGenerateReply}
-              disabled={isGenerating}
+              onClick={generateReply}
+              disabled={isGeneratingReply}
               className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
             >
-              {isGenerating ? 'Generating...' : 'Generate Reply'}
+              {isGeneratingReply ? 'Generating...' : 'Generate Reply'}
             </Button>
           )}
           {post.latestReply && (
