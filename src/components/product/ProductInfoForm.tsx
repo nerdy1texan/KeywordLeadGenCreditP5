@@ -104,12 +104,20 @@ export default function ProductInfoForm() {
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response from server');
       }
+
+      const filteredKeywords = Array.isArray(data.keywords) 
+        ? data.keywords.filter((keyword: string) => 
+            keyword.toLowerCase() !== data.name?.toLowerCase() &&
+            !data.name?.toLowerCase().includes(keyword.toLowerCase()) &&
+            !keyword.toLowerCase().includes(data.name?.toLowerCase())
+          )
+        : [];
       
       void formik.setValues({
         ...formik.values,
         name: data.name || formik.values.name,
         description: data.description || formik.values.description,
-        keywords: Array.isArray(data.keywords) ? data.keywords : formik.values.keywords,
+        keywords: filteredKeywords,
         plans: Array.isArray(data.plans) ? data.plans : formik.values.plans,
       });
       

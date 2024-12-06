@@ -81,10 +81,14 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       if (!response.ok) throw new Error('Failed to fetch posts');
       
       const data = await response.json();
-      // Transform the data to match PostWithProduct type
-      const postsWithProduct: PostWithProduct[] = data.map((post: RedditPost) => ({
+      // Sort posts by date (newest first) before setting state
+      const sortedPosts = data.sort((a: RedditPost, b: RedditPost) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      const postsWithProduct: PostWithProduct[] = sortedPosts.map((post: RedditPost) => ({
         ...post,
-        engagement: post.engagement as 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT',
+        engagement: post.engagement as Engagement,
         product: {
           name: currentProduct?.name || '',
           description: currentProduct?.description || '',
@@ -104,7 +108,11 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       const response = await fetch(`/api/products/${productId}/tweets`);
       if (!response.ok) throw new Error('Failed to fetch tweets');
       const data = await response.json();
-      setTweets(data);
+      // Sort tweets by date (newest first) before setting state
+      const sortedTweets = data.sort((a: Tweet, b: Tweet) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setTweets(sortedTweets);
     } catch (error) {
       console.error('Error fetching tweets:', error);
       toast('Failed to fetch tweets', 'error');
@@ -179,8 +187,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   }, []);
 
   const breakpointColumnsObj = {
-    default: 4,
-    3000: 4,
+    default: 3,
+    3000: 3,
     2000: 3,
     1200: 2,
     700: 1

@@ -18,6 +18,7 @@ interface PostCardProps {
 
 type ExtendedRedditPost = RedditPost & { 
   product: Pick<Product, 'name' | 'description' | 'keywords' | 'url'>;
+  authorUsername?: string;
   latestReply: string | null;
 };
 
@@ -30,7 +31,8 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
   const { toast } = useToast();
   const [post, setPost] = useState<ExtendedRedditPost>({
     ...initialPost,
-    latestReply: initialPost.latestReply ?? null
+    latestReply: initialPost.latestReply ?? null,
+    authorUsername: initialPost.authorUsername
   });
   const [isGeneratingReply, setIsGeneratingReply] = useState(false);
 
@@ -155,7 +157,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
   };
 
   // Add a helper to determine if the post is a tweet
-  const isTweet = !initialPost.subreddit && initialPost.authorUsername;
+  const isTweet = !post.subreddit && post.authorUsername;
 
   return (
     <div className="bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-800 hover:border-[#5244e1] rounded-xl p-6 transition-all w-full mb-6 shadow-sm hover:shadow-md">
