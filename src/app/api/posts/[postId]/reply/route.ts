@@ -27,111 +27,104 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    const { type = 'twitter' } = body; // Default to twitter if not specified
+    // Determine type based on the post lookup
     const { postId } = params;
+    
+    // First try to find Reddit post
+    let post = await prisma.redditPost.findUnique({
+      where: { id: postId },
+      include: {
+        product: {
+          select: {
+            name: true,
+            description: true,
+            keywords: true,
+            url: true,
+          },
+        },
+      },
+    });
 
-    console.log('Processing request:', { type, postId });
+    let type = 'reddit';
+
+    // If not found, try to find Tweet
+    if (!post) {
+      post = await prisma.tweet.findUnique({
+        where: { id: postId },
+        include: {
+          product: {
+            select: {
+              name: true,
+              description: true,
+              keywords: true,
+              url: true,
+            },
+          },
+        },
+      });
+      type = 'twitter';
+    }
+
+    if (!post) {
+      return NextResponse.json({ error: 'Post not found' }, { status: 404 });
+    }
+
+    console.log('Found post:', post);
+    console.log('Post type:', type);
 
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the post data first
-    let post;
-    try {
-      if (type === 'reddit') {
-        post = await prisma.redditPost.findUnique({
-          where: { id: postId },
-          include: {
-            product: {
-              select: {
-                name: true,
-                description: true,
-                keywords: true,
-                url: true,
-              },
-            },
-          },
-        });
-      } else {
-        post = await prisma.tweet.findUnique({
-          where: { id: postId },
-          include: {
-            product: {
-              select: {
-                name: true,
-                description: true,
-                keywords: true,
-                url: true,
-              },
-            },
-          },
-        });
-      }
+    // Generate reply using OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful assistant generating a response for ${post.product.name}. 
+                   Use the following product details:
+                   Description: ${post.product.description}
+                   Keywords: ${post.product.keywords.join(', ')}
+                   URL: ${post.product.url}`
+        },
+        {
+          role: "user",
+          content: `Generate a friendly and engaging reply to this ${type} post: "${post.text}"`
+        }
+      ],
+      max_tokens: 150,
+    });
 
-      if (!post) {
-        return NextResponse.json({ error: 'Post not found' }, { status: 404 });
-      }
+    const reply = completion.choices[0]?.message?.content || '';
+    console.log('Generated reply:', reply);
 
-      console.log('Found post:', post);
-
-      // Generate reply using OpenAI
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: `You are a helpful assistant generating a response for ${post.product.name}. 
-                     Use the following product details:
-                     Description: ${post.product.description}
-                     Keywords: ${post.product.keywords.join(', ')}
-                     URL: ${post.product.url}`
-          },
-          {
-            role: "user",
-            content: `Generate a friendly and engaging reply to this ${type} post: "${post.text}"`
-          }
-        ],
-        max_tokens: 150,
+    // Update the post with the generated reply
+    if (type === 'reddit') {
+      await prisma.redditPost.update({
+        where: { id: postId },
+        data: {
+          isReplied: true,
+          latestReply: reply,
+        },
       });
-
-      const reply = completion.choices[0]?.message?.content || '';
-      console.log('Generated reply:', reply);
-
-      // Update the post with the generated reply
-      if (type === 'reddit') {
-        await prisma.redditPost.update({
-          where: { id: postId },
-          data: {
-            isReplied: true,
-            latestReply: reply,
-          },
-        });
-      } else {
-        await prisma.tweet.update({
-          where: { id: postId },
-          data: {
-            isReplied: true,
-            latestReply: reply,
-          },
-        });
-      }
-
-      return NextResponse.json({ reply });
-
-    } catch (error) {
-      console.error('Database or OpenAI error:', error);
-      return NextResponse.json(
-        { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
-        { status: 500 }
-      );
+    } else {
+      await prisma.tweet.update({
+        where: { id: postId },
+        data: {
+          isReplied: true,
+          latestReply: reply,
+        },
+      });
     }
 
+    return NextResponse.json({ reply });
+
   } catch (error) {
-    console.error('Top level error:', error);
+    console.error('Database or OpenAI error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to process request', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

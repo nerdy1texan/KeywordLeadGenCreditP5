@@ -25,7 +25,6 @@ type ExtendedRedditPost = RedditPost & {
 export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isReplied, setIsReplied] = useState(initialPost.isReplied);
-  const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReplyExpanded, setIsReplyExpanded] = useState(false);
   const { toast } = useToast();
@@ -34,7 +33,6 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
     latestReply: initialPost.latestReply ?? null,
     authorUsername: initialPost.authorUsername
   });
-  const [isGeneratingReply, setIsGeneratingReply] = useState(false);
 
   const MAX_CHARS = 300;
   const shouldTruncate = post.text.length > MAX_CHARS;
@@ -68,7 +66,6 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
         product: updatedPost.product
       }));
 
-      setShowCommentBuilder(true);
       toast("Reply generated successfully!", "success");
     } catch (error) {
       console.error('Generate reply error:', error);
@@ -114,31 +111,35 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
       ...updatedPost,
       latestReply: updatedPost.latestReply ?? null
     });
-    setShowCommentBuilder(false);
   };
 
   const generateReply = async () => {
-    setIsGeneratingReply(true);
     try {
+      if (isGenerating) return;
+      setIsGenerating(true);
+      
       const response = await fetch(`/api/posts/${post.id}/reply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          type: 'twitter', // or determine dynamically based on post type
-        }),
+          type: isTweet ? 'twitter' : 'reddit'
+        })
       });
 
-      if (!response.ok) throw new Error('Failed to generate reply');
-      
+      if (!response.ok) {
+        throw new Error('Failed to generate reply');
+      }
+
       const data = await response.json();
       
       // Update the local post state with the new reply
       setPost(prevPost => ({
         ...prevPost,
         latestReply: data.reply,
-        isReplied: true
+        isReplied: true,
+        product: data.product
       }));
 
       // Notify parent component
@@ -152,7 +153,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
       console.error('Error generating reply:', error);
       toast('Failed to generate reply. Please try again.', 'error');
     } finally {
-      setIsGeneratingReply(false);
+      setIsGenerating(false);
     }
   };
 
@@ -225,7 +226,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
         )}
       </div>
 
-      {/* Generated Reply section with updated styling */}
+      {/* Generated Reply section */}
       {post.latestReply && (
         <div className="mt-6">
           <div className="rounded-lg border-2 border-[#5244e1]/30">
@@ -283,38 +284,16 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
         </div>
       )}
 
-      {post.latestReply && showCommentBuilder && (
-        <CommentBuilder
-          isOpen={showCommentBuilder}
-          onClose={() => {
-            setShowCommentBuilder(false);
-            handleGenerateReply();
-          }}
-          post={post}
-          onReplyUpdate={handleReplyUpdate}
-        />
-      )}
-
-      {/* Actions with updated button logic */}
+      {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <div className="flex-1 flex flex-col sm:flex-row gap-3">
           {!post.latestReply && (
             <Button 
               onClick={generateReply}
-              disabled={isGeneratingReply}
+              disabled={isGenerating}
               className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
             >
-              {isGeneratingReply ? 'Generating...' : 'Generate Reply'}
-            </Button>
-          )}
-          {post.latestReply && (
-            <Button
-              onClick={() => setShowCommentBuilder(true)}
-              disabled={showCommentBuilder}
-              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white flex items-center justify-center gap-2"
-            >
-              <span>AI Reply Assistant</span>
-              {showCommentBuilder && <ChevronDown className="h-4 w-4" />}
+              {isGenerating ? 'Generating...' : 'Generate Reply'}
             </Button>
           )}
         </div>
