@@ -118,6 +118,7 @@ model Product {
   updatedAt           DateTime              @updatedAt
   monitoredSubreddits SubredditSuggestion[]
   redditPosts         RedditPost[]          @relation("ProductPosts")
+  tweets              Tweet[]               @relation("ProductTweets")
   plans               Plan[]                @relation("ProductPlans")
 }
 
@@ -172,6 +173,30 @@ model Plan {
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade, name: "ProductPlans")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+}
+
+model Tweet {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  twitterId      String   @unique
+  text           String
+  url            String
+  author         String
+  authorUsername String
+  createdAt      DateTime
+  productId      String   @db.ObjectId
+  product        Product  @relation("ProductTweets", fields: [productId], references: [id])
+  engagement     String   @default("unseen")
+  fit           Float    @default(0)
+  authenticity  Float    @default(0)
+  lead          Float    @default(0)
+  isFavorited   Boolean  @default(false)
+  isReplied     Boolean  @default(false)
+  latestReply   String?
+  replyCount    Int      @default(0)
+  retweetCount  Int      @default(0)
+  likeCount     Int      @default(0)
 
   @@index([productId])
 }

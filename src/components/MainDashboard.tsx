@@ -8,7 +8,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { CommentBuilder } from "./CommentBuilder";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
-import { SubredditSuggestion } from "@/types/product";
+import { SubredditSuggestion, Tweet } from "@/types/product";
 import { useToast } from "./ui/use-toast";
 import { motion } from "framer-motion";
 import { RefreshCw, UsersIcon } from "lucide-react";
@@ -28,7 +28,18 @@ type Engagement = 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
 
 // Update PostWithProduct to exactly match CommentBuilder's expected type
 type PostWithProduct = Omit<RedditPost, 'engagement' | 'product'> & {
-  engagement: 'unseen' | 'seen' | 'engaged' | 'converted' | 'HOT';
+  engagement: Engagement;
+  product: {
+    name: string;
+    description: string;
+    keywords: string[];
+    url: string | undefined;
+  };
+};
+
+// Add TweetWithProduct type
+type TweetWithProduct = Omit<Tweet, 'engagement' | 'product'> & {
+  engagement: Engagement;
   product: {
     name: string;
     description: string;
@@ -39,6 +50,7 @@ type PostWithProduct = Omit<RedditPost, 'engagement' | 'product'> & {
 
 export default function MainDashboard({ productId }: MainDashboardProps) {
   const [posts, setPosts] = useState<PostWithProduct[]>([]);
+  const [tweets, setTweets] = useState<Tweet[]>([]);
   const [monitoredSubreddits, setMonitoredSubreddits] = useState<SubredditSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -46,7 +58,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
   const [filters, setFilters] = useState({
     timeRange: 'all',
-    subreddit: 'all'
+    subreddit: 'all',
+    platform: 'reddit' as 'reddit' | 'twitter'
   });
   const [showMonitoringDialog, setShowMonitoringDialog] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
@@ -81,15 +94,35 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     }
   };
 
+  const fetchTweets = async () => {
+    try {
+      const response = await fetch(`/api/products/${productId}/tweets`);
+      if (!response.ok) throw new Error('Failed to fetch tweets');
+      const data = await response.json();
+      setTweets(data);
+    } catch (error) {
+      console.error('Error fetching tweets:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch tweets',
+        variant: 'destructive',
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (!isInitialLoad) setIsLoading(true);
         
-        await Promise.all([
-          fetchPosts(),
-          fetchMonitoredSubreddits()
-        ]);
+        if (filters.platform === 'reddit') {
+          await Promise.all([
+            fetchPosts(),
+            fetchMonitoredSubreddits()
+          ]);
+        } else {
+          await fetchTweets();
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -158,13 +191,71 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
     setFilters(prev => ({ ...prev, timeRange }));
   };
 
+  const handlePlatformChange = (platform: 'reddit' | 'twitter') => {
+    setFilters(prev => ({ ...prev, platform }));
+  };
+
   const handleRefresh = useCallback(async () => {
     try {
-      await fetchPosts();
+      if (filters.platform === 'reddit') {
+        await fetchPosts();
+      } else {
+        await fetchTweets();
+      }
     } catch (error) {
-      console.error('Error refreshing posts:', error);
+      console.error('Error refreshing data:', error);
     }
-  }, [fetchPosts]);
+  }, [filters.platform]);
+
+  const startMonitoringTweets = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/twitter/scrape', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          tweetCount: 50, // Fetch 50 tweets by default
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to start tweet monitoring');
+      }
+
+      await fetchTweets();
+      toast('Started monitoring tweets successfully', 'success');
+    } catch (error) {
+      console.error('Error starting tweet monitoring:', error);
+      toast('Failed to start tweet monitoring. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReplyToTweet = async (tweetId: string, replyText: string) => {
+    try {
+      const response = await fetch(`/api/tweet-replies/${tweetId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reply: replyText }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reply to tweet');
+      }
+
+      await fetchTweets(); // Refresh tweets after reply
+      toast('Reply sent successfully', 'success');
+    } catch (error) {
+      console.error('Error replying to tweet:', error);
+      toast('Failed to send reply. Please try again.', 'error');
+    }
+  };
 
   return (
     <div className="space-y-6 p-4 sm:p-6 max-w-[2000px] mx-auto">
@@ -296,6 +387,8 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 timeRange={filters.timeRange}
                 onSubredditChange={handleSubredditChange}
                 onTimeRangeChange={handleTimeRangeChange}
+                onPlatformChange={handlePlatformChange}
+                platform={filters.platform}
               />
             </div>
           </div>
@@ -316,27 +409,59 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 />
               ))}
             </motion.div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-300">No posts found. Try adjusting your filters or start monitoring.</p>
-            </div>
+          ) : filters.platform === 'reddit' ? (
+            posts.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-300">No posts found. Try adjusting your filters or start monitoring.</p>
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={breakpointColumnsObj}
+                className="flex -ml-6 w-auto"
+                columnClassName="pl-6 bg-clip-padding"
+              >
+                {posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onGenerateReply={() => {
+                      setSelectedPost(post);
+                      setShowCommentBuilder(true);
+                    }}
+                  />
+                ))}
+              </Masonry>
+            )
           ) : (
-            <Masonry
-              breakpointCols={breakpointColumnsObj}
-              className="flex -ml-6 w-auto"
-              columnClassName="pl-6 bg-clip-padding"
-            >
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onGenerateReply={() => {
-                    setSelectedPost(post);
-                    setShowCommentBuilder(true);
-                  }}
-                />
-              ))}
-            </Masonry>
+            // Twitter content
+            tweets.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-300">No tweets found. Try adjusting your filters or start monitoring tweets.</p>
+              </div>
+            ) : (
+              <Masonry
+                breakpointCols={breakpointColumnsObj}
+                className="flex -ml-6 w-auto"
+                columnClassName="pl-6 bg-clip-padding"
+              >
+                {tweets.map((tweet) => (
+                  <PostCard
+                    key={tweet.id}
+                    post={{
+                      ...tweet,
+                      subreddit: 'twitter', // Identify as Twitter content
+                      text: tweet.text,
+                      title: tweet.text.slice(0, 50) + '...',
+                      url: tweet.url,
+                    }}
+                    onGenerateReply={() => {
+                      // Handle tweet reply generation
+                      toast('Tweet reply generation coming soon!', 'info');
+                    }}
+                  />
+                ))}
+              </Masonry>
+            )
           )}
 
           {/* Comment Builder Dialog */}
