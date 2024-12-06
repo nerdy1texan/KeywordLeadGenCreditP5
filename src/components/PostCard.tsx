@@ -142,18 +142,11 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
         onReplyGenerated(data.reply);
       }
 
-      toast({
-        title: "Reply generated",
-        description: "The reply has been generated successfully.",
-      });
+      toast('Reply generated successfully', 'success');
 
     } catch (error) {
       console.error('Error generating reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate reply. Please try again.",
-        variant: "destructive",
-      });
+      toast('Failed to generate reply. Please try again.', 'error');
     } finally {
       setIsGeneratingReply(false);
     }

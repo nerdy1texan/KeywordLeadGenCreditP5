@@ -70,20 +70,19 @@ export function MonitoringDialog({
         }
       }
 
-      toast({
-        title: 'Success',
-        description: 'Started monitoring for new content',
-      });
+      toast(
+        'Started monitoring for new content',
+        'success'
+      );
 
       await onSuccess();
       onClose();
     } catch (error) {
       console.error('Monitoring error:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to start monitoring',
-        variant: 'destructive',
-      });
+      toast(
+        error instanceof Error ? error.message : 'Failed to start monitoring',
+        'error'
+      );
     } finally {
       setIsLoading(false);
     }

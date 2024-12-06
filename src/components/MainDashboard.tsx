@@ -48,6 +48,11 @@ type TweetWithProduct = Omit<Tweet, 'engagement' | 'product'> & {
   };
 };
 
+// Update the PostCard props type to include onGenerateReply
+type ExtendedPost = RedditPost & {
+  product: Pick<Product, "name" | "url" | "description" | "keywords">;
+};
+
 export default function MainDashboard({ productId }: MainDashboardProps) {
   const [posts, setPosts] = useState<PostWithProduct[]>([]);
   const [tweets, setTweets] = useState<Tweet[]>([]);
@@ -102,11 +107,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
       setTweets(data);
     } catch (error) {
       console.error('Error fetching tweets:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch tweets',
-        variant: 'destructive',
-      });
+      toast('Failed to fetch tweets', 'error');
     }
   };
 
@@ -417,16 +418,18 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             ) : (
               <Masonry
                 breakpointCols={breakpointColumnsObj}
-                className="flex -ml-6 w-auto"
-                columnClassName="pl-6 bg-clip-padding"
+                className="my-masonry-grid"
+                columnClassName="my-masonry-grid_column"
               >
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}
-                    post={post}
-                    onGenerateReply={() => {
-                      setSelectedPost(post);
-                      setShowCommentBuilder(true);
+                    post={{
+                      ...post,
+                      engagement: post.engagement as "unseen" | "seen" | "engaged" | "converted" | "HOT" | undefined
+                    } as ExtendedPost}
+                    onReplyGenerated={() => {
+                      handleRefresh();
                     }}
                   />
                 ))}
@@ -441,22 +444,32 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
             ) : (
               <Masonry
                 breakpointCols={breakpointColumnsObj}
-                className="flex -ml-6 w-auto"
-                columnClassName="pl-6 bg-clip-padding"
+                className="my-masonry-grid"
+                columnClassName="my-masonry-grid_column"
               >
                 {tweets.map((tweet) => (
                   <PostCard
                     key={tweet.id}
                     post={{
                       ...tweet,
-                      subreddit: 'twitter', // Identify as Twitter content
-                      text: tweet.text,
-                      title: tweet.text.slice(0, 50) + '...',
-                      url: tweet.url,
-                    }}
-                    onGenerateReply={() => {
-                      // Handle tweet reply generation
-                      toast('Tweet reply generation coming soon!', 'info');
+                      redditId: tweet.id,
+                      title: '',
+                      subreddit: '',
+                      engagement: undefined,
+                      product: currentProduct ? {
+                        name: currentProduct.name,
+                        description: currentProduct.description,
+                        keywords: currentProduct.keywords,
+                        url: currentProduct.url
+                      } : {
+                        name: '',
+                        description: '',
+                        keywords: [],
+                        url: ''
+                      }
+                    } as ExtendedPost}
+                    onReplyGenerated={() => {
+                      handleRefresh();
                     }}
                   />
                 ))}
