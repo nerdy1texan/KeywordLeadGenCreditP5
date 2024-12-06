@@ -129,14 +129,31 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
       if (!response.ok) throw new Error('Failed to generate reply');
       
       const data = await response.json();
+      
+      // Update the local post state with the new reply
+      setPost(prevPost => ({
+        ...prevPost,
+        latestReply: data.reply,
+        isReplied: true
+      }));
+
+      // Notify parent component
       if (onReplyGenerated) {
         onReplyGenerated(data.reply);
       }
-      
-      // Refresh the post data to show the new reply
-      // You might want to implement a refresh mechanism here
+
+      toast({
+        title: "Reply generated",
+        description: "The reply has been generated successfully.",
+      });
+
     } catch (error) {
       console.error('Error generating reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate reply. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsGeneratingReply(false);
     }
