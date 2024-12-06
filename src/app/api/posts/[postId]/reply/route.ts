@@ -8,6 +8,25 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Define a type that includes common properties between Tweet and RedditPost
+type Post = {
+  id: string;
+  text: string;
+  url: string;
+  author: string;
+  createdAt: Date;
+  productId: string;
+  engagement: string;
+  isReplied: boolean;
+  latestReply: string | null;
+  product: {
+    name: string;
+    description: string;
+    keywords: string[];
+    url: string | null;
+  };
+};
+
 export async function POST(
   req: Request,
   { params }: { params: { postId: string } }
@@ -27,11 +46,12 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
     }
 
-    // Determine type based on the post lookup
     const { postId } = params;
-    
+    let post: Post | null = null;
+    let type = 'reddit';
+
     // First try to find Reddit post
-    let post = await prisma.redditPost.findUnique({
+    post = await prisma.redditPost.findUnique({
       where: { id: postId },
       include: {
         product: {
@@ -43,9 +63,7 @@ export async function POST(
           },
         },
       },
-    });
-
-    let type = 'reddit';
+    }) as Post | null;
 
     // If not found, try to find Tweet
     if (!post) {
@@ -61,7 +79,7 @@ export async function POST(
             },
           },
         },
-      });
+      }) as Post | null;
       type = 'twitter';
     }
 
