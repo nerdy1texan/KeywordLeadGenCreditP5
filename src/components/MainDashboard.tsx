@@ -424,10 +424,9 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}
-                    post={{
-                      ...post,
-                      engagement: post.engagement as "unseen" | "seen" | "engaged" | "converted" | "HOT" | undefined
-                    } as ExtendedPost}
+                    post={post as unknown as RedditPost & { 
+                      product: Pick<Product, "name" | "url" | "description" | "keywords">
+                    }}
                     onReplyGenerated={() => {
                       handleRefresh();
                     }}
@@ -447,32 +446,49 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 className="my-masonry-grid"
                 columnClassName="my-masonry-grid_column"
               >
-                {tweets.map((tweet) => (
-                  <PostCard
-                    key={tweet.id}
-                    post={{
-                      ...tweet,
-                      redditId: tweet.id,
-                      title: '',
-                      subreddit: '',
-                      engagement: undefined,
-                      product: currentProduct ? {
-                        name: currentProduct.name,
-                        description: currentProduct.description,
-                        keywords: currentProduct.keywords,
-                        url: currentProduct.url
-                      } : {
-                        name: '',
-                        description: '',
-                        keywords: [],
-                        url: ''
-                      }
-                    } as ExtendedPost}
-                    onReplyGenerated={() => {
-                      handleRefresh();
-                    }}
-                  />
-                ))}
+                {tweets.map((tweet) => {
+                  const postData = {
+                    ...tweet,
+                    redditId: tweet.id,
+                    title: '',
+                    subreddit: '',
+                    text: tweet.text || '',
+                    url: tweet.url || '',
+                    author: tweet.author || '',
+                    createdAt: tweet.createdAt,
+                    productId: tweet.productId,
+                    engagement: "unseen" as const,
+                    fit: tweet.fit || 0,
+                    authenticity: tweet.authenticity || 0,
+                    lead: tweet.lead || 0,
+                    isFavorited: tweet.isFavorited || false,
+                    isReplied: tweet.isReplied || false,
+                    latestReply: tweet.latestReply,
+                    product: currentProduct ? {
+                      name: currentProduct.name,
+                      description: currentProduct.description,
+                      keywords: currentProduct.keywords,
+                      url: currentProduct.url
+                    } : {
+                      name: '',
+                      description: '',
+                      keywords: [],
+                      url: ''
+                    }
+                  };
+
+                  return (
+                    <PostCard
+                      key={tweet.id}
+                      post={postData as unknown as RedditPost & { 
+                        product: Pick<Product, "name" | "url" | "description" | "keywords">
+                      }}
+                      onReplyGenerated={() => {
+                        handleRefresh();
+                      }}
+                    />
+                  );
+                })}
               </Masonry>
             )
           )}
