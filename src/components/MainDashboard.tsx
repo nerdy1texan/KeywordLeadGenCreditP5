@@ -424,8 +424,9 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                 {posts.map((post) => (
                   <PostCard
                     key={post.id}
-                    post={post as unknown as RedditPost & { 
-                      product: Pick<Product, "name" | "url" | "description" | "keywords">
+                    post={{
+                      ...post,
+                      engagement: post.engagement as "unseen" | "seen" | "engaged" | "converted" | "HOT" | undefined
                     }}
                     onReplyGenerated={() => {
                       handleRefresh();
@@ -457,7 +458,7 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                     author: tweet.author || '',
                     createdAt: tweet.createdAt,
                     productId: tweet.productId,
-                    engagement: "unseen" as const,
+                    engagement: "unseen" as "unseen" | "seen" | "engaged" | "converted" | "HOT",
                     fit: tweet.fit || 0,
                     authenticity: tweet.authenticity || 0,
                     lead: tweet.lead || 0,
@@ -468,21 +469,19 @@ export default function MainDashboard({ productId }: MainDashboardProps) {
                       name: currentProduct.name,
                       description: currentProduct.description,
                       keywords: currentProduct.keywords,
-                      url: currentProduct.url
+                      url: currentProduct.url || undefined
                     } : {
                       name: '',
                       description: '',
                       keywords: [],
-                      url: ''
+                      url: undefined
                     }
                   };
 
                   return (
                     <PostCard
                       key={tweet.id}
-                      post={postData as unknown as RedditPost & { 
-                        product: Pick<Product, "name" | "url" | "description" | "keywords">
-                      }}
+                      post={postData}
                       onReplyGenerated={() => {
                         handleRefresh();
                       }}
