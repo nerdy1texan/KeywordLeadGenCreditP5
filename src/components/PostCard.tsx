@@ -24,7 +24,7 @@ type ExtendedRedditPost = RedditPost & {
 
 export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps) {
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isReplied, setIsReplied] = useState(initialPost.isReplied);
+  const [isReplied, setIsReplied] = useState(initialPost.isReplied || false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReplyExpanded, setIsReplyExpanded] = useState(false);
   const [showCommentBuilder, setShowCommentBuilder] = useState(false);
@@ -135,12 +135,17 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
 
       const data = await response.json();
       
-      // Update the local post state with the new reply
+      // Update the local post state with the new reply and product data
       setPost(prevPost => ({
         ...prevPost,
         latestReply: data.reply,
         isReplied: true,
-        product: data.product
+        product: {
+          name: data.product?.name ?? '',
+          description: data.product?.description ?? '',
+          keywords: data.product?.keywords ?? [],
+          url: data.product?.url ?? ''
+        }
       }));
 
       // Notify parent component
@@ -238,15 +243,6 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowCommentBuilder(true)}
-                    className="text-[#5244e1] hover:text-[#5244e1]/90"
-                  >
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    AI Reply Assistant
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
                     onClick={handleCopyReply}
                     className="text-gray-400 hover:text-gray-300"
                   >
@@ -274,7 +270,7 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
                 <Button
                   variant="ghost"
                   onClick={() => setIsReplyExpanded(!isReplyExpanded)}
-                  className="mt-2 text-[#5244e1] hover:text-[#5244e1]/90 p-0 h-auto font-medium flex items-center gap-1"
+                  className="mt-2 text-[#5244e1] hover:bg-[#5244e1]/10 hover:text-[#5244e1] p-0 h-auto font-medium flex items-center gap-1"
                 >
                   {isReplyExpanded ? (
                     <>
@@ -297,13 +293,21 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <div className="flex-1 flex flex-col sm:flex-row gap-3">
-          {!post.latestReply && (
+          {!post.latestReply ? (
             <Button 
               onClick={generateReply}
               disabled={isGenerating}
               className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
             >
               {isGenerating ? 'Generating...' : 'Generate Reply'}
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => setShowCommentBuilder(true)}
+              className="w-full bg-[#5244e1] hover:bg-opacity-90 text-white font-medium"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              AI Reply Assistant
             </Button>
           )}
         </div>
@@ -317,17 +321,17 @@ export function PostCard({ post: initialPost, onReplyGenerated }: PostCardProps)
       </div>
 
       {/* Comment Builder Modal */}
-      {showCommentBuilder && (
+      {showCommentBuilder && post.product && (
         <CommentBuilder
           isOpen={showCommentBuilder}
           onClose={() => setShowCommentBuilder(false)}
           post={{
             ...post,
             product: {
-              name: post.product.name,
-              description: post.product.description,
-              keywords: post.product.keywords,
-              url: post.product.url
+              name: post.product?.name ?? '',
+              description: post.product?.description ?? '',
+              keywords: post.product?.keywords ?? [],
+              url: post.product?.url ?? ''
             }
           }}
           onReplyUpdate={(updatedPost) => {
