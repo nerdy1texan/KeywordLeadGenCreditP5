@@ -68,6 +68,11 @@ export default function ProductInfoForm() {
 
         notify({ message: "Product information saved successfully!", type: "success" });
         
+        void formik.setFieldValue('productId', productData.id);
+        setProductId(productData.id);
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         await findSubreddits(productData);
       } catch (error: any) {
         console.error("Form submission error:", error);
@@ -172,19 +177,23 @@ export default function ProductInfoForm() {
   };
 
   const handleFindSubreddits = async () => {
+    if (!productId) {
+      notify({ 
+        message: "Please save the product first", 
+        type: "error" 
+      });
+      return;
+    }
+
     try {
       setIsSearchingSubreddits(true);
-      const params = new URLSearchParams({
-        description: formik.values.description,
-        productId: productId
-      });
-      
-      const response = await fetch(`/api/products/subreddits?${params}`, {
+      const response = await fetch(`/api/products/subreddits?productId=${productId}`, {
         method: 'GET'
       });
 
       if (!response.ok) {
-        throw new Error('Failed to find subreddits');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to find subreddits');
       }
       
       const newSubreddits = await response.json();

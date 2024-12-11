@@ -34,6 +34,8 @@ export const GET = async (req: NextRequest) => {
       );
     }
 
+    console.log('Fetching product with ID:', productId);
+
     // Get product with its keywords
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -43,10 +45,19 @@ export const GET = async (req: NextRequest) => {
       }
     });
 
+    console.log('Found product:', product);
+
     if (!product) {
       return NextResponse.json(
         { error: "Product not found" }, 
         { status: 404 }
+      );
+    }
+
+    if (!product.keywords || product.keywords.length === 0) {
+      return NextResponse.json(
+        { error: "No keywords found for this product" }, 
+        { status: 400 }
       );
     }
 
