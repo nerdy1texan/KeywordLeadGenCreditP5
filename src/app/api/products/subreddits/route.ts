@@ -1,3 +1,5 @@
+// src/app/api/products/subreddits/route.ts
+
 import { type NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ApifyClient } from 'apify-client';
@@ -23,13 +25,28 @@ const openai = new OpenAI({
 
 export const GET = async (req: NextRequest) => {
   try {
-    const description = req.nextUrl.searchParams.get("description");
     const productId = req.nextUrl.searchParams.get("productId");
     
-    if (!description || !productId) {
+    if (!productId) {
       return NextResponse.json(
-        { error: "Description and Product ID are required" }, 
+        { error: "Product ID is required" }, 
         { status: 400 }
+      );
+    }
+
+    // Get product with its keywords
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: {
+        keywords: true,
+        name: true
+      }
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { error: "Product not found" }, 
+        { status: 404 }
       );
     }
 
@@ -41,45 +58,32 @@ export const GET = async (req: NextRequest) => {
 
     const existingNames = new Set(existingSubreddits.map(sub => sub.name.toLowerCase()));
 
-    // Extract keywords and find new subreddits
-    const keywords = await extractKeywords(description);
-    console.log('Searching with keywords:', keywords);
+    // Use stored keywords, excluding the product name
+    const keywords = product.keywords.filter(k => k.toLowerCase() !== product.name.toLowerCase());
+    console.log('Searching with stored keywords:', keywords);
 
     const subreddits = await getSubredditsFromApify(keywords, productId);
     
-    // Store new subreddits in database
-    if (subreddits.length > 0) {
-      try {
-        // Filter out subreddits that already exist
-        const newSubreddits = subreddits.filter(
-          sub => !existingNames.has(sub.name.toLowerCase())
+    // If we don't have enough subreddits, try with expanded keywords
+    if (subreddits.length < 50) {
+      const expandedKeywords = await expandKeywords(keywords);
+      const additionalSubreddits = await getSubredditsFromApify(expandedKeywords, productId);
+      
+      // Combine and deduplicate subreddits
+      const allSubreddits = [...subreddits, ...additionalSubreddits]
+        .filter((sub, index, self) => 
+          index === self.findIndex((t) => t.name.toLowerCase() === sub.name.toLowerCase())
         );
-
-        if (newSubreddits.length > 0) {
-          // Create new subreddits one by one
-          const createdSubreddits = await Promise.all(
-            newSubreddits.map(subreddit =>
-              prisma.subredditSuggestion.create({
-                data: {
-                  ...subreddit,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
-                }
-              }).catch(e => {
-                console.error(`Failed to create subreddit ${subreddit.name}:`, e);
-                return null;
-              })
-            )
-          );
-
-          const successfulCreations = createdSubreddits.filter(Boolean);
-          console.log(`Successfully processed ${successfulCreations.length} new subreddits`);
-        } else {
-          console.log('No new subreddits to add');
-        }
-      } catch (error) {
-        console.error('Error processing subreddits:', error);
-      }
+        
+      // Store new subreddits
+      await storeSubreddits(allSubreddits.filter(
+        sub => !existingNames.has(sub.name.toLowerCase())
+      ), productId);
+    } else {
+      // Store original subreddits if we have enough
+      await storeSubreddits(subreddits.filter(
+        sub => !existingNames.has(sub.name.toLowerCase())
+      ), productId);
     }
 
     // Return updated list
@@ -97,6 +101,30 @@ export const GET = async (req: NextRequest) => {
     );
   }
 };
+
+// Helper function to store subreddits
+async function storeSubreddits(subreddits: any[], productId: string) {
+  if (subreddits.length > 0) {
+    try {
+      await Promise.all(
+        subreddits.map(subreddit =>
+          prisma.subredditSuggestion.create({
+            data: {
+              ...subreddit,
+              createdAt: new Date(),
+              updatedAt: new Date()
+            }
+          }).catch(e => {
+            console.error(`Failed to create subreddit ${subreddit.name}:`, e);
+            return null;
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Error storing subreddits:', error);
+    }
+  }
+}
 
 // Helper function to extract keywords using OpenAI
 async function extractKeywords(description: string): Promise<string[]> {
@@ -122,9 +150,9 @@ async function extractKeywords(description: string): Promise<string[]> {
   return keywords;
 }
 
-// Helper function to calculate relevance score
+// Modified relevance score calculation to be more lenient
 function calculateRelevanceScore(subreddit: ApifySubredditResponse, keywords: string[]): number {
-  let score = 70; // Base score
+  let score = 60; // Lower base score to be more inclusive
   let relevanceHits = 0;
   const totalKeywords = keywords.length;
   
@@ -134,66 +162,86 @@ function calculateRelevanceScore(subreddit: ApifySubredditResponse, keywords: st
     const titleLower = subreddit.title.toLowerCase();
     const descLower = subreddit.description?.toLowerCase() || '';
     
-    // Direct matches in title are very important
+    // Direct matches in title
     if (titleLower.includes(keywordLower)) {
-      score += 15;
+      score += 12;
       relevanceHits++;
     }
     
-    // Matches in description are good too
+    // Matches in description
     if (descLower.includes(keywordLower)) {
-      score += 10;
+      score += 8;
       relevanceHits++;
     }
   });
 
-  // Calculate keyword match percentage
+  // More lenient member count scoring
+  if (subreddit.numberOfMembers > 1000000) score += 15;
+  else if (subreddit.numberOfMembers > 100000) score += 10;
+  else if (subreddit.numberOfMembers > 10000) score += 5;
+  
+  // Smaller penalty for small communities
+  if (subreddit.numberOfMembers < 5000) score -= 10;
+  
+  // More lenient keyword match percentage
   const matchPercentage = (relevanceHits / totalKeywords) * 100;
+  if (matchPercentage < 20) score -= 20;
   
-  // Bonus for high member count (we want active communities)
-  if (subreddit.numberOfMembers > 1000000) score += 10;
-  else if (subreddit.numberOfMembers > 100000) score += 5;
-  
-  // Penalty for very small communities
-  if (subreddit.numberOfMembers < 10000) score -= 20;
-  
-  // If less than 30% of keywords match, significantly reduce score
-  if (matchPercentage < 30) score -= 30;
-  
-  // Cap the score
   return Math.min(100, Math.max(0, score));
 }
 
-// Helper function to search for subreddits using Apify
+// Modified subreddit extraction function
 async function getSubredditsFromApify(keywords: string[], productId: string) {
   try {
-    const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
-      searches: keywords,
-      type: "community", // Specifically search for communities
-      sort: "relevance", // Sort by relevance to get most relevant communities
-      maxItems: 100, // Get more items to filter down to best matches
-      maxCommunitiesCount: 20, // Limit to 20 most relevant communities
-      proxy: {
-        useApifyProxy: true,
-        apifyProxyGroups: ["RESIDENTIAL"]
-      },
-      searchCommunities: true,
-      searchPosts: false, // Disable post search
-      time: "all"
-    });
+    // Generate broader search terms
+    const expandedKeywords = await expandKeywords(keywords);
+    console.log('Expanded keywords:', expandedKeywords);
 
-    const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+    // Split searches into batches to avoid timeout
+    const batchSize = 10;
+    const batches = [];
+    for (let i = 0; i < expandedKeywords.length; i += batchSize) {
+      batches.push(expandedKeywords.slice(i, i + batchSize));
+    }
+
+    let allSubreddits: any[] = [];
     
-    // Filter and format subreddits
-    const subreddits = (items as unknown[])
+    // Process batches until we have enough subreddits or exhaust all keywords
+    for (const batch of batches) {
+      if (allSubreddits.length >= 50) break;
+
+      const run = await apifyClient.actor("trudax/reddit-scraper-lite").call({
+        searches: batch,
+        type: "community",
+        sort: "relevance",
+        maxItems: 200, // Increased to get more results
+        maxCommunitiesCount: 50, // Increased limit
+        proxy: {
+          useApifyProxy: true,
+          apifyProxyGroups: ["RESIDENTIAL"]
+        },
+        searchCommunities: true,
+        searchPosts: false,
+        time: "all"
+      });
+
+      const { items } = await apifyClient.dataset(run.defaultDatasetId).listItems();
+      allSubreddits = [...allSubreddits, ...items];
+      
+      // Break if we have enough subreddits
+      if (allSubreddits.length >= 200) break;
+    }
+
+    // Process and filter subreddits
+    const processedSubreddits = allSubreddits
       .filter((item): item is ApifySubredditResponse => {
         if (!isApifySubredditResponse(item)) return false;
-        return (
-          item.dataType === 'community' && 
-          typeof item.numberOfMembers === 'number' &&
-          item.numberOfMembers >= 1000
-        );
+        return item.dataType === 'community' && typeof item.numberOfMembers === 'number';
       })
+      // Remove duplicates based on subreddit name
+      .filter((item, index, self) => 
+        index === self.findIndex((t) => t.title.toLowerCase() === item.title.toLowerCase())
+      )
       .map((item) => ({
         name: item.title,
         title: item.title,
@@ -201,17 +249,50 @@ async function getSubredditsFromApify(keywords: string[], productId: string) {
         memberCount: item.numberOfMembers,
         url: item.url,
         relevanceScore: calculateRelevanceScore(item, keywords),
-        matchReason: `Relevant to: ${keywords.slice(0, 3).join(", ")}`,
+        matchReason: `Relevant to: ${expandedKeywords.slice(0, 3).join(", ")}`,
         isMonitored: false,
         productId
       }));
 
-    return subreddits
-      .filter(sub => sub.relevanceScore >= 75)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 20);
+    // Sort by relevance score and member count
+    return processedSubreddits
+      .filter(sub => sub.relevanceScore >= 50) // More lenient score threshold
+      .sort((a, b) => {
+        // Prioritize relevance score but consider member count
+        const scoreWeight = 0.7;
+        const memberWeight = 0.3;
+        const normalizedMemberScore = Math.min(100, (Math.log10(b.memberCount) / Math.log10(1000000)) * 100);
+        const aScore = (a.relevanceScore * scoreWeight) + (normalizedMemberScore * memberWeight);
+        const bScore = (b.relevanceScore * scoreWeight) + (normalizedMemberScore * memberWeight);
+        return bScore - aScore;
+      })
+      .slice(0, 50);
   } catch (error) {
     console.error("Error in findRelevantSubreddits:", error);
     return [];
   }
+}
+
+// New helper function to expand keywords for better coverage
+async function expandKeywords(originalKeywords: string[]): Promise<string[]> {
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4-turbo-preview",
+    messages: [
+      {
+        role: "system",
+        content: "Generate 10-15 related search terms for finding Reddit communities, including broader topics and specific niches. Return only the terms separated by commas, no explanation."
+      },
+      {
+        role: "user",
+        content: `Original keywords: ${originalKeywords.join(", ")}`
+      }
+    ],
+    temperature: 0.7,
+  });
+
+  const expandedTerms = completion.choices[0]?.message?.content?.split(',')
+    .map(k => k.trim())
+    .filter(Boolean) || [];
+    
+  return [...new Set([...originalKeywords, ...expandedTerms])];
 } 
